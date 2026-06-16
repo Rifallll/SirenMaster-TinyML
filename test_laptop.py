@@ -243,8 +243,8 @@ def process_audio():
         rms = np.sqrt(np.mean(audio_data**2))
         current_rms = rms * 32768
 
-        # Suara terlalu pelan → Langsung kembali ke NORMAL secara instan (Noise Gate dipertajam ke 0.005)
-        if rms < 0.005:
+        # Suara terlalu pelan → Langsung kembali ke NORMAL secara instan (Noise Gate disamakan dengan ESP32 = 0.04)
+        if rms < 0.04:
             loud_chunks_count = 0
             locked_class = None
             ema_probs[:] = np.array([0.0, 0.0, 1.0, 0.0], dtype=np.float32)
@@ -263,13 +263,7 @@ def process_audio():
         repeats = int(np.ceil(BUFFER_SAMPLES / active_samples))
         buffer_copy = np.tile(active_audio, repeats)[:BUFFER_SAMPLES]
 
-        # ── AUTO-GAIN (dibatasi maks 5x) ──
-        max_val = np.max(np.abs(buffer_copy))
-        if max_val > 0.0001:
-            gain = min(1.0 / max_val, 5.0)
-            buffer_copy = buffer_copy * gain
-
-        # ── EKSTRAKSI FITUR (identik dengan training!) ──
+        # ── EKSTRAKSI FITUR (Sinyal mentah sesuai aslinya!) ──
         feat = extract_melspec(buffer_copy)
 
         # ── NORMALISASI Z-SCORE ──

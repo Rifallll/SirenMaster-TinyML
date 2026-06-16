@@ -72,12 +72,10 @@ def augment_and_extract(y, sr, cat_idx):
         if rms < 0.001:
             continue
 
-        # Normalisasi volume
-        max_val = np.max(np.abs(chunk))
-        if max_val > 1e-6:
-            chunk = chunk / max_val
-
-        # Asli
+        # HAPUS NORMALISASI VOLUME MAX! (Sinyal mentah penting untuk mendeteksi variasi jarak)
+        # Sebagai gantinya, tambahkan Augmentasi Volume Acak (10% - 100%)
+        
+        # Asli (Sinyal Mentah)
         samples_X.append(extract_melspec(chunk))
         samples_y.append(cat_idx)
 
@@ -89,6 +87,12 @@ def augment_and_extract(y, sr, cat_idx):
         # Low-pass filter (simulasi suara jauh)
         muffled = np.convolve(chunk, np.ones(5)/5, mode='same')
         samples_X.append(extract_melspec(muffled))
+        samples_y.append(cat_idx)
+        
+        # Volume Scaling Augmentation
+        vol_scale = np.random.uniform(0.1, 1.0)
+        chunk_vol = chunk * vol_scale
+        samples_X.append(extract_melspec(chunk_vol))
         samples_y.append(cat_idx)
 
     return samples_X, samples_y

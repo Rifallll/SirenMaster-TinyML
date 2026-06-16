@@ -129,6 +129,14 @@ def process_single_file(fp, label, is_training):
                     feat_muffled = extract_melspec(chunk_muffled)
                     X_file.append(feat_muffled)
                     y_file.append(label)
+                    
+                # 3. Volume Scaling Augmentation (Krusial agar AI kebal terhadap fluktuasi suara live)
+                # Mengubah volume antara 10% hingga 100% secara acak
+                vol_scale = np.random.uniform(0.1, 1.0)
+                chunk_vol = chunk * vol_scale
+                feat_vol = extract_melspec(chunk_vol)
+                X_file.append(feat_vol)
+                y_file.append(label)
                 
                 # Mematikan Pitch Shift dan Random Shift sementara agar jumlah dataset
                 # tidak meledak hingga 150.000 sampel (memangkas waktu training dari 1 jam -> 10 menit)
