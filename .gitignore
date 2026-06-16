@@ -1,0 +1,45 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+bin/
+lib/
+include/
+pyvenv.cfg
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Large Data & Cache Files (Do not upload to Git)
+*.npz
+*.h5
+*.tflite
+*.joblib
+*.wav
+*.mp3
+*.m4a
+dataset_defects_log.txt
+problematic_police_files.txt
+realtime_stats.json
+confusion_matrix.png
+training_history.png
+spectrogram_analysis.png
+
+# Dataset directories
+AMBULANCE/
+FIRETRUCK/
+POLICE/
+NORMAL/
+TAMBAH_DATASET/
+DATASET_ARCHIVE/
+
+# IDEs & System
+.idea/
+.vscode/
+.gemini/
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,625 @@
+{
+  "confusion_matrix": [
+    [
+      3616,
+      6,
+      9,
+      13
+    ],
+    [
+      3,
+      3652,
+      1,
+      2
+    ],
+    [
+      3,
+      3,
+      3650,
+      1
+    ],
+    [
+      38,
+      15,
+      5,
+      3600
+    ]
+  ],
+  "classification_report": "              precision    recall  f1-score   support\n\n   AMBULANCE     0.9880    0.9923    0.9901      3644\n   FIRETRUCK     0.9935    0.9984    0.9959      3658\n      NORMAL     0.9959    0.9981    0.9970      3657\n      POLICE     0.9956    0.9841    0.9898      3658\n\n    accuracy                         0.9932     14617\n   macro avg     0.9932    0.9932    0.9932     14617\nweighted avg     0.9932    0.9932    0.9932     14617\n",
+  "false_examples": [
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\ambulance_0079_seg01.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.76171875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\ambulance_0123_seg02.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.62890625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\ambulance_0134_seg06.wav",
+      "true": "AMBULANCE",
+      "pred": "NORMAL",
+      "confidence": 0.63671875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_noise_2809_sound_79.wav",
+      "true": "AMBULANCE",
+      "pred": "NORMAL",
+      "confidence": 0.58203125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_noise_3463_sound_85.wav",
+      "true": "AMBULANCE",
+      "pred": "NORMAL",
+      "confidence": 0.69921875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_noise_6439_sound_18.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.6015625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_noise_7514_ambulance_0079_seg01.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.71875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_noise_ambulance_0090_seg01.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.7421875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_noise_sound_18.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.67578125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_pitch_1216_sound_167.wav",
+      "true": "AMBULANCE",
+      "pred": "NORMAL",
+      "confidence": 0.87109375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_pitch_1399_sound_74_1.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.91796875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_pitch_3217_sound_18.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.8828125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_pitch_4410_sound_37_1.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.96875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_pitch_4657_ambulance_0118_seg06.wav",
+      "true": "AMBULANCE",
+      "pred": "NORMAL",
+      "confidence": 0.83203125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_pitch_6961_ambulance_0125_seg02.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.77734375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_pitch_7130_sound_18.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.8125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_pitch_8412_sound_7.wav",
+      "true": "AMBULANCE",
+      "pred": "NORMAL",
+      "confidence": 0.55078125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_pitch_ambulance_0157_seg01.wav",
+      "true": "AMBULANCE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.890625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_pitch_sound_196_1.wav",
+      "true": "AMBULANCE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.6953125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_stretch_4149_sound_160_1.wav",
+      "true": "AMBULANCE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.87109375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_stretch_4857_sound_15_1.wav",
+      "true": "AMBULANCE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.7109375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_stretch_7385_ambulance_0079_seg01.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.67578125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_stretch_8549_sound_81.wav",
+      "true": "AMBULANCE",
+      "pred": "NORMAL",
+      "confidence": 0.60546875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\aug_stretch_8784_sound_85_1.wav",
+      "true": "AMBULANCE",
+      "pred": "NORMAL",
+      "confidence": 0.6015625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\sound_160_1.wav",
+      "true": "AMBULANCE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.60546875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\sound_165_1.wav",
+      "true": "AMBULANCE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\sound_17.wav",
+      "true": "AMBULANCE",
+      "pred": "POLICE",
+      "confidence": 0.65234375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\AMBULANCE\\sound_81.wav",
+      "true": "AMBULANCE",
+      "pred": "NORMAL",
+      "confidence": 0.95703125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\FIRETRUCK\\fire_0261_noise_light.wav",
+      "true": "FIRETRUCK",
+      "pred": "POLICE",
+      "confidence": 0.47265625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\FIRETRUCK\\fire_1895_seg01.wav",
+      "true": "FIRETRUCK",
+      "pred": "AMBULANCE",
+      "confidence": 0.53515625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\FIRETRUCK\\fire_1930_seg01.wav",
+      "true": "FIRETRUCK",
+      "pred": "AMBULANCE",
+      "confidence": 0.828125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\FIRETRUCK\\sound_204_1.wav",
+      "true": "FIRETRUCK",
+      "pred": "POLICE",
+      "confidence": 0.984375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\FIRETRUCK\\sound_325.wav",
+      "true": "FIRETRUCK",
+      "pred": "AMBULANCE",
+      "confidence": 0.9375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\FIRETRUCK\\sound_334.wav",
+      "true": "FIRETRUCK",
+      "pred": "NORMAL",
+      "confidence": 0.6015625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\NORMAL\\aug_noise_8439_traffic_sound_676.wav",
+      "true": "NORMAL",
+      "pred": "AMBULANCE",
+      "confidence": 0.76171875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\NORMAL\\aug_pitch_4558_noise_u9_194733-9-0-14_01.wav",
+      "true": "NORMAL",
+      "pred": "AMBULANCE",
+      "confidence": 0.796875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\NORMAL\\aug_stretch_5577_noise_u1_164625-1-0-0_01.wav",
+      "true": "NORMAL",
+      "pred": "POLICE",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\NORMAL\\aug_stretch_6431_traffic_sound_730.wav",
+      "true": "NORMAL",
+      "pred": "FIRETRUCK",
+      "confidence": 0.5625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\NORMAL\\aug_stretch_6666_urban_3_173995-3-0-0.wav",
+      "true": "NORMAL",
+      "pred": "AMBULANCE",
+      "confidence": 0.9921875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\NORMAL\\noise_u2_84143-2-0-38_01.wav",
+      "true": "NORMAL",
+      "pred": "FIRETRUCK",
+      "confidence": 0.98828125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\NORMAL\\traffic_sound_730.wav",
+      "true": "NORMAL",
+      "pred": "FIRETRUCK",
+      "confidence": 0.7890625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\aug_noise_1480_police_0413_noise_light.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.97265625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\aug_pitch_2248_police_0070_original.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.92578125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\aug_pitch_4182_police_0222_seg01.wav",
+      "true": "POLICE",
+      "pred": "NORMAL",
+      "confidence": 0.3671875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\aug_pitch_7256_police_0059_original.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.73046875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\aug_stretch_1173_Suara Sirine Polisi.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.9921875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\aug_stretch_2327_police_0164_loud.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.9609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\aug_stretch_3371_police_0002_seg01.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.9921875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\aug_stretch_6522_police_0164_noise_light.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.8984375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\aug_stretch_9465_police_0451_seg01.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.87890625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\aug_stretch_9643_police_0319_seg01.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0001_seg13.wav",
+      "true": "POLICE",
+      "pred": "NORMAL",
+      "confidence": 0.6953125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0001_seg63.wav",
+      "true": "POLICE",
+      "pred": "NORMAL",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0002_seg01.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.98828125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0002_seg80.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.984375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0002_seg81.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0002_seg83.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0002_seg85.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0002_seg89.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0003_seg13.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.6015625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0006_loud.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.97265625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0031_loud.wav",
+      "true": "POLICE",
+      "pred": "NORMAL",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0031_original.wav",
+      "true": "POLICE",
+      "pred": "NORMAL",
+      "confidence": 0.9921875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0059_original.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.62109375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0067_shift.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.96875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0072_loud.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.55078125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0073_loud.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0099_seg01.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.546875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0103_seg01.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.953125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0109_seg01.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.55078125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0136_loud.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0136_noise_light.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0136_original.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0163_seg01.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.94140625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0164_loud.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.97265625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0164_noise_light.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.5234375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0164_original.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.546875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0249_loud.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.8671875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0249_original.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.52734375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0310_loud.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.52734375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0319_seg01.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.96875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0321_seg01.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0403_loud.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.578125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0403_original.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.3671875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0403_shift.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.73828125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0413_loud.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.98828125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0413_noise_light.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.98046875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0413_original.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.9765625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\police_0451_seg01.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.75390625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\sound_648_1.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.6484375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\sound_650_1.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.95703125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\sound_653_1.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.71484375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\sound_680_1.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.953125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\sound_714_1.wav",
+      "true": "POLICE",
+      "pred": "FIRETRUCK",
+      "confidence": 0.59765625
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\sound_758_1.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.96875
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\sound_759_1.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.99609375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\sound_824_1.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.7109375
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\Suara Sirine Mobil Patwal Polisi FULL HD.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.98828125
+    },
+    {
+      "filepath": "C:\\Users\\ASUS\\Videos\\DATASET\\POLICE\\Suara Sirine Polisi.wav",
+      "true": "POLICE",
+      "pred": "AMBULANCE",
+      "confidence": 0.92578125
+    }
+  ]
+}
