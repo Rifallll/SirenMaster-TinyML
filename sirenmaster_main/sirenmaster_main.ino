@@ -288,48 +288,64 @@ int runInference(float &confidence) {
   return (bestS >= CONFIDENCE_THR) ? best : 2;
 }
 
-#define HISTORY_LEN 3
-static int classHistory[HISTORY_LEN] = {2, 2, 2};
-static int historyIdx = 0;
-static unsigned long lastSirenTime = 0;
-static int heldClass = 2;
+// ── Variabel EMA State ──
+static float ema_probs[NUM_CLASSES] = {0.0f, 0.0f, 1.0f, 0.0f};
+#define EMA_ALPHA 0.15f
+#define SIREN_THRESHOLD 0.80f
+#define OVERRIDE_THRESHOLD 0.95f
+static int locked_class_idx = 2; // Default NORMAL (2)
 
-int smartDetect(int raw) {
-  unsigned long now = millis();
-  
-  // 1. Simpan tebakan terbaru ke dalam riwayat
-  classHistory[historyIdx] = raw;
-  historyIdx = (historyIdx + 1) % HISTORY_LEN;
-  
-  // 2. Lakukan Voting (Hitung Suara Terbanyak dalam 3 detik terakhir)
-  int votes[NUM_CLASSES] = {0};
-  for(int i=0; i<HISTORY_LEN; i++) {
-    votes[classHistory[i]]++;
-  }
-  
-  // Cari Pemenang Voting
-  int winner = 2;
-  int maxVotes = 0;
+int smartDetectEMA(float &out_prob, bool &is_thinking) {
+  // 1. Update EMA
   for(int i=0; i<NUM_CLASSES; i++) {
-    if(votes[i] > maxVotes) {
-      maxVotes = votes[i];
-      winner = i;
+    ema_probs[i] = (1.0f - EMA_ALPHA) * ema_probs[i] + EMA_ALPHA * outputScores[i];
+  }
+  
+  // 2. Cari Best Probability
+  int best_idx = 0;
+  float best_prob = ema_probs[0];
+  for(int i=1; i<NUM_CLASSES; i++) {
+    if(ema_probs[i] > best_prob) {
+      best_prob = ema_probs[i];
+      best_idx = i;
     }
   }
   
-  // Keputusan akhir: Harus menang telak (minimal 2 dari 3 suara), jika seri/acak, ikuti yang terakhir
-  int decision = (maxVotes >= 2) ? winner : raw;
+  is_thinking = false;
   
-  if (decision != 2) { // JIKA ADA SIRINE (Bukan NORMAL)
-    heldClass = decision;
-    lastSirenTime = now;
+  // 3. Logika Lock-on
+  if (locked_class_idx != 2) {
+    if (ema_probs[locked_class_idx] < SIREN_THRESHOLD) {
+      locked_class_idx = 2; // Lepas lock
+    }
+  }
+  
+  if (locked_class_idx == 2) {
+    if (best_idx != 2 && best_prob >= SIREN_THRESHOLD) {
+      locked_class_idx = best_idx;
+      out_prob = best_prob;
+    } else if (best_idx != 2 && best_prob > 0.40f) {
+      // THINKING STATE!
+      is_thinking = true;
+      out_prob = best_prob;
+      return best_idx; // Kembalikan kelas yang sedang dinilai
+    } else {
+      out_prob = ema_probs[2]; // NORMAL
+      return 2;
+    }
   } else {
-    // Jika terdeteksi NORMAL, tunggu 3 detik sebelum kembali ke NORMAL (SCANNING)
-    if (now - lastSirenTime > 3000) {
-      heldClass = 2;
+    // Override logic
+    if (best_idx != 2 && best_idx != locked_class_idx && best_prob >= OVERRIDE_THRESHOLD) {
+      locked_class_idx = best_idx;
+      for(int i=0; i<NUM_CLASSES; i++) ema_probs[i] = 0.0f;
+      ema_probs[best_idx] = 1.0f;
+      out_prob = best_prob;
+    } else {
+      out_prob = ema_probs[locked_class_idx];
     }
   }
-  return heldClass;
+  
+  return locked_class_idx;
 }
 
 static int lastShownClass = -1;
@@ -392,10 +408,14 @@ void drawWarningIcon(int cls, uint16_t color) {
   }
 }
 
-void lcdShowDetection(int cls, float conf) {
+void lcdShowDetection(int cls, float conf, bool thinking) {
   if (lcdMutex == NULL || xSemaphoreTake(lcdMutex, pdMS_TO_TICKS(100)) != pdTRUE) return;
-  if (cls != lastShownClass) {
-    lastShownClass = cls;
+  
+  // Modifikasi agar state thinking dianggap state yang berbeda secara UI
+  int stateID = thinking ? (cls + 10) : cls; 
+  
+  if (stateID != lastShownClass) {
+    lastShownClass = stateID;
     lastShownConf = conf;
     strobeToggle = true; // Mulai dengan warna menyala
 
@@ -403,33 +423,39 @@ void lcdShowDetection(int cls, float conf) {
     uint16_t fg = ST77XX_WHITE;
     const char *alertText = "";
 
-    switch (cls) {
-    case 0:
-      bg = ST77XX_RED;
-      fg = ST77XX_WHITE;
-      alertText = "AMBULANCE";
-      break;
-    case 1:
-      bg = 0xFD20; /* Orange */
-      fg = ST77XX_BLACK;
-      alertText = "FIRETRUCK";
-      break;
-    case 2:
-      bg = ST77XX_BLACK;
-      fg = ST77XX_GREEN;
-      alertText = "SAFE";
-      break;
-    case 3:
-      bg = ST77XX_BLUE;
-      fg = ST77XX_WHITE;
-      alertText = "POLICE";
-      break;
+    if (thinking) {
+      bg = 0x8200; // Merah Tua / Coklat Redup (Bukan merah menyala)
+      fg = 0xFD20; // Oranye Kuning
+      alertText = CLASS_LABELS[cls];
+    } else {
+      switch (cls) {
+      case 0:
+        bg = ST77XX_RED;
+        fg = ST77XX_WHITE;
+        alertText = "AMBULANCE";
+        break;
+      case 1:
+        bg = 0xFD20; /* Orange */
+        fg = ST77XX_BLACK;
+        alertText = "FIRETRUCK";
+        break;
+      case 2:
+        bg = ST77XX_BLACK;
+        fg = ST77XX_GREEN;
+        alertText = "SAFE";
+        break;
+      case 3:
+        bg = ST77XX_BLUE;
+        fg = ST77XX_WHITE;
+        alertText = "POLICE";
+        break;
+      }
     }
 
     tft.fillScreen(bg);
     drawHUDFrame(fg);
 
-    if (cls == 2) {
+    if (cls == 2 && !thinking) {
       // Tampilan LISTENING / SCANNING
       tft.setTextSize(2);
       tft.setTextColor(ST77XX_GREEN);
@@ -438,6 +464,24 @@ void lcdShowDetection(int cls, float conf) {
 
       tft.setCursor((240 - (11 * 12)) / 2, 225); // "SCANNING..."
       tft.print("SCANNING...");
+    } else if (thinking) {
+      // Tampilan MENILAI...
+      tft.setTextSize(2);
+      tft.setTextColor(fg);
+      tft.setCursor((240 - (13 * 12)) / 2, 65); // "? MENILAI ?"
+      tft.print("? MENILAI ?");
+
+      // Ikon berpikir sementara (kotak kecil)
+      tft.fillRect(110, 120, 20, 20, fg);
+
+      tft.setTextSize(2);
+      int textW = strlen(alertText) * 12;
+      tft.setCursor((240 - textW) / 2, 180);
+      tft.print(alertText);
+
+      tft.setTextSize(2);
+      tft.setCursor((240 - (10 * 12)) / 2, 225);
+      tft.printf("Conf: %3.0f%%", conf * 100);
     } else {
       // Tampilan ALERT Megah
       tft.setTextSize(2);
@@ -457,38 +501,39 @@ void lcdShowDetection(int cls, float conf) {
       tft.setCursor((240 - (10 * 12)) / 2, 225); // Centered "Conf: XX%"
       tft.printf("Conf: %3.0f%%", conf * 100);
     }
-  } else if (cls != 2) {
+  } else if (cls != 2 || thinking) {
     lastShownConf = conf;
   }
   xSemaphoreGive(lcdMutex);
 }
 
-void applyOutputs(int cls, float conf) {
+void applyOutputs(int cls, float conf, bool thinking) {
   // Cegah AI menyalakan komponen jika sistem baru saja dimatikan
   if (!btnManager.isActive()) return;
   
-  switch (cls) {
-  case 0:
-    setRGB(1, 0, 0);
-    motorPattern = 1;
-    break;
-  case 1:
-    setRGB(1, 1, 0);
-    motorPattern = 2;
-    break;
-  case 2:
+  if (thinking || cls == 2) {
+    // Sedang MENILAI atau SAFE: Jangan bunyikan sirine/motor dulu!
     setRGB(0, 0, 0);
     motorPattern = 0;
-    break;
-  case 3:
-    setRGB(0, 0, 1);
-    motorPattern = 3;
-    break;
+  } else {
+    // ALERT PENUH: Bunyikan dan nyalakan lampu!
+    switch (cls) {
+    case 0:
+      setRGB(1, 0, 0);
+      motorPattern = 1;
+      break;
+    case 1:
+      setRGB(1, 1, 0);
+      motorPattern = 2;
+      break;
+    case 3:
+      setRGB(0, 0, 1);
+      motorPattern = 3;
+      break;
+    }
   }
-  // Use the smoothed class's probability as the displayed confidence level
-  float smoothedConf = outputScores[cls];
   
-  lcdShowDetection(cls, smoothedConf);
+  lcdShowDetection(cls, conf, thinking);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -937,8 +982,15 @@ void inferenceTaskCode(void *pvParameters) {
       if (rms < 1400.0f) {
         Serial.printf("[ZzZ] Hening (RMS: %.1f) -> SAFE\n\n", rms);
         targetAmplitude = 0.0f; // Gelombang lurus
-        int cls = smartDetect(2);
-        applyOutputs(cls, 1.0f);
+        
+        // Force NORMAL scores during silence to allow EMA to decay properly
+        for(int i=0; i<NUM_CLASSES; i++) outputScores[i] = 0.0f;
+        outputScores[2] = 1.0f;
+        
+        bool thinking = false;
+        float final_prob = 1.0f;
+        int cls = smartDetectEMA(final_prob, thinking);
+        applyOutputs(cls, final_prob, thinking);
         continue;
       }
 
@@ -950,12 +1002,15 @@ void inferenceTaskCode(void *pvParameters) {
 
       Serial.println("[ML] Inference...");
       float conf = 0;
-      int raw = runInference(conf);
-      int cls = smartDetect(raw);
-      applyOutputs(cls, conf);
+      runInference(conf); // Updates outputScores[] internally
+      
+      bool thinking = false;
+      float final_prob = 0.0f;
+      int cls = smartDetectEMA(final_prob, thinking);
+      applyOutputs(cls, final_prob, thinking);
 
       // Cetak hasil klasifikasi berserta volume RMS untuk mempermudah monitoring/kalibrasi
-      Serial.printf("[Result] %s | %.1f%% (RMS: %.1f)\n\n", CLASS_LABELS[cls], conf * 100, rms);
+      Serial.printf("[Result] %s | %.1f%% %s (RMS: %.1f)\n\n", CLASS_LABELS[cls], final_prob * 100, thinking ? "(MENILAI...)" : "", rms);
     }
   }
 }

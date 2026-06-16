@@ -53,10 +53,10 @@ CATEGORIES = ['AMBULANCE', 'FIRETRUCK', 'NORMAL', 'POLICE']
 # ════════════════════════════════════════════════════════════════
 #  CEK FILE YANG DIBUTUHKAN
 # ════════════════════════════════════════════════════════════════
-if not os.path.exists(CACHE_PATH) or not os.path.exists(MODEL_PATH):
-    print("[ERROR] File cache atau model TFLite tidak ditemukan.")
-    print(f"  Butuh: {CACHE_PATH} dan {MODEL_PATH}")
-    print("  Jalankan dulu: .venv\\Scripts\\python.exe train_lokal.py")
+if not os.path.exists(CACHE_PATH) or not os.path.exists(MODEL_PATH) or not os.path.exists("siren_scaler.npz"):
+    print("[ERROR] File model, cache, atau scaler tidak ditemukan!")
+    print(f"  Pastikan file ini ada: {CACHE_PATH}, {MODEL_PATH}, dan siren_scaler.npz")
+    print("  Solusi: Harap jalankan 'python train_lokal.py' terlebih dahulu untuk melakukan training dan generate file tersebut.")
     sys.exit(1)
 
 # ════════════════════════════════════════════════════════════════
@@ -140,6 +140,7 @@ q = queue.Queue()
 
 recent_chunks = []
 PAUSED = False
+RECORDING_IN_PROGRESS = False
 
 # EMA Accumulator: [AMBULANCE, FIRETRUCK, NORMAL, POLICE]
 ema_probs = np.array([0.0, 0.0, 1.0, 0.0], dtype=np.float32)
@@ -171,15 +172,22 @@ def display_thread():
         bar_len = min(int(current_rms / 300.0 * 25), 25)
         vol_bar = '█' * bar_len + '░' * (25 - bar_len)
         
+        if RECORDING_IN_PROGRESS:
+            time.sleep(0.1)
+            continue
+            
         if PAUSED:
             line = f"[{spin}] PAUSED  Vol: [{vol_bar}] {current_rms:5.0f}"
         elif current_label == 'NORMAL':
             line = f"[{spin}] Mendengarkan  Vol: [{vol_bar}] {current_rms:5.0f}"
+        elif "MENILAI" in current_label:
+            # Mode "Berpikir": AI sedang mempertimbangkan tapi belum yakin 100%
+            line = f"[{spin}] 🤔 {current_label} ({current_prob * 100:.1f}%)  Vol: [{vol_bar}] {current_rms:5.0f}"
         else:
             line = f"  🚨🚨  {current_label} ({current_prob * 100:.1f}%)  🚨🚨   Vol: [{vol_bar}] {current_rms:5.0f}"
             
         try:
-            sys.stdout.write(f"\r{line:<70}")
+            sys.stdout.write(f"\r{line:<75}")
             sys.stdout.flush()
         except UnicodeEncodeError:
             # Fallback ke ASCII jika terminal Windows tidak mendukung UTF-8
@@ -188,10 +196,12 @@ def display_thread():
                 line_ascii = f"[{spin}] PAUSED  Vol: [{ascii_bar}] {current_rms:5.0f}"
             elif current_label == 'NORMAL':
                 line_ascii = f"[{spin}] Mendengarkan  Vol: [{ascii_bar}] {current_rms:5.0f}"
+            elif "MENILAI" in current_label:
+                line_ascii = f"[{spin}] ? {current_label} ({current_prob * 100:.1f}%)  Vol: [{ascii_bar}] {current_rms:5.0f}"
             else:
                 line_ascii = f"  !!!  {current_label} ({current_prob * 100:.1f}%)  !!!   Vol: [{ascii_bar}] {current_rms:5.0f}"
             try:
-                sys.stdout.write(f"\r{line_ascii:<70}")
+                sys.stdout.write(f"\r{line_ascii:<75}")
                 sys.stdout.flush()
             except:
                 pass
@@ -233,8 +243,8 @@ def process_audio():
         rms = np.sqrt(np.mean(audio_data**2))
         current_rms = rms * 32768
 
-        # Suara terlalu pelan → Langsung kembali ke NORMAL secara instan
-        if rms < 0.002:
+        # Suara terlalu pelan → Langsung kembali ke NORMAL secara instan (Noise Gate dipertajam ke 0.005)
+        if rms < 0.005:
             loud_chunks_count = 0
             locked_class = None
             ema_probs[:] = np.array([0.0, 0.0, 1.0, 0.0], dtype=np.float32)
@@ -302,7 +312,8 @@ def process_audio():
             probs_norm = np.array([0.0, 0.0, 1.0, 0.0])  # Default NORMAL
 
         # ── EMA ACCUMULATOR (deteksi stabil) ──
-        EMA_ALPHA = 0.30
+        # Alpha dikecilkan dari 0.30 menjadi 0.15 agar respon lebih lambat dan stabil, tidak mudah tertipu noise sesaat
+        EMA_ALPHA = 0.15
         ema_probs[:] = (1 - EMA_ALPHA) * ema_probs + EMA_ALPHA * probs_norm
 
         # Re-normalisasi
@@ -316,8 +327,9 @@ def process_audio():
         best_label = CATEGORIES[best_idx]
 
         # ── THRESHOLD & LOCK-ON ──
-        SIREN_THRESHOLD = 0.60
-        OVERRIDE_THRESHOLD = 0.90
+        # Diperketat menjadi 80% agar tidak asal tebak kelas
+        SIREN_THRESHOLD = 0.80
+        OVERRIDE_THRESHOLD = 0.95
 
         if locked_class is not None:
             locked_idx = CATEGORIES.index(locked_class)
@@ -329,6 +341,10 @@ def process_audio():
             if best_label != 'NORMAL' and best_prob >= SIREN_THRESHOLD:
                 locked_class = best_label
                 current_label = locked_class
+                current_prob = best_prob
+            elif best_label != 'NORMAL' and best_prob > 0.40:
+                # UX Baru: Tampilkan proses "Pikir Dulu" AI
+                current_label = f"MENILAI {best_label}..."
                 current_prob = best_prob
             else:
                 current_label = 'NORMAL'
@@ -388,15 +404,50 @@ try:
                 elif key == '3': cat_name = 'NORMAL'
                 elif key == '4': cat_name = 'POLICE'
 
-                if cat_name and len(recent_chunks) > 0:
+                if cat_name:
                     PAUSED = True
                     time.sleep(0.1)
-                    sys.stdout.write(f"\r\n[+] Menyimpan dan melatih {cat_name}...{' '*30}\n")
-                    combined_audio = np.concatenate(recent_chunks)
+                    
+                    # Kosongkan antrean audio yang lama agar kita benar-benar merekam dari 0 detik ke depan
+                    while not q.empty():
+                        try:
+                            q.get_nowait()
+                        except queue.Empty:
+                            break
+                            
+                    sys.stdout.write(f"\r\n[+] MEREKAM 10 DETIK UNTUK: {cat_name}... HARAP BUNYIKAN SUARA SEKARANG!\n")
+                    RECORDING_IN_PROGRESS = True
+                    
+                    recorded_chunks = []
+                    target_chunks = int(10.0 / UPDATE_INTERVAL) # 10 detik = 20 chunks
+                    for i in range(target_chunks):
+                        chunk = q.get() # Menunggu chunk mikrofon yang masuk secara live
+                        recorded_chunks.append(chunk)
+                        
+                        # Hitung volume live agar tidak terlihat freeze (nyangkut)
+                        rms = np.sqrt(np.mean(chunk**2))
+                        live_vol = rms * 32768
+                        
+                        # Tampilkan progress bar dengan volume meter live
+                        progress = int((i + 1) / target_chunks * 20)
+                        bar = '█' * progress + '░' * (20 - progress)
+                        sys.stdout.write(f"\r    Merekam: [{bar}] {(i+1)*UPDATE_INTERVAL:.1f} dtk | Vol: {live_vol:5.0f}    ")
+                        sys.stdout.flush()
+                        
+                    sys.stdout.write("\n[+] Perekaman selesai. Menyimpan dan melatih AI...\n")
+                    
+                    combined_audio = np.concatenate(recorded_chunks)
+                    
+                    # OPTIMASI KUALITAS SUARA (Agar tidak mendem)
+                    # 1. Hapus DC Offset (dengung statis hardware mikrofon)
+                    combined_audio = combined_audio - np.mean(combined_audio)
+                    
+                    # 2. Peak Normalization ke 95% agar suaranya lantang dan jernih tapi tidak pecah
                     max_amp = np.max(np.abs(combined_audio))
                     if max_amp > 0:
-                        combined_audio = combined_audio / max_amp
-                    wav_data = np.int16(combined_audio * 32767)
+                        combined_audio = combined_audio * (0.95 / max_amp)
+                        
+                    wav_data = np.int16(np.clip(combined_audio, -1.0, 1.0) * 32767)
 
                     filename = f"tambah_{int(time.time())}.wav"
                     filepath = os.path.join(SAVE_DIR, cat_name, filename)
@@ -424,6 +475,7 @@ try:
                     except Exception as e:
                         sys.stdout.write(f"\r[!] Gagal melatih: {e}\n")
 
+                    RECORDING_IN_PROGRESS = False
                     PAUSED = False
             time.sleep(0.1)
 except KeyboardInterrupt:
