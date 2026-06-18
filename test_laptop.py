@@ -167,41 +167,56 @@ def display_thread():
     global current_rms, current_label, current_prob
     spinner = ['|', '/', '-', '\\']
     idx = 0
+    
+    SHORT_LABELS = {
+        'NORMAL': 'SAFE',
+        'AMBULANCE': 'AMBU',
+        'FIRETRUCK': 'FIRE',
+        'POLICE': 'POL'
+    }
+    
     while True:
         spin = spinner[idx % 4]
-        bar_len = min(int(current_rms / 300.0 * 25), 25)
-        vol_bar = '█' * bar_len + '░' * (25 - bar_len)
+        # Perkecil bar volume ke 6 karakter agar hemat kolom (12 kolom visual)
+        bar_len = min(int(current_rms / 300.0 * 6), 6)
+        vol_bar = '█' * bar_len + '░' * (6 - bar_len)
         
         if RECORDING_IN_PROGRESS:
             time.sleep(0.1)
             continue
             
-        if PAUSED:
-            line = f"[{spin}] PAUSED  Vol: [{vol_bar}] {current_rms:5.0f}"
-        elif current_label == 'NORMAL':
-            line = f"[{spin}] Mendengarkan  Vol: [{vol_bar}] {current_rms:5.0f}"
-        elif "MENILAI" in current_label:
-            # Mode "Berpikir": AI sedang mempertimbangkan tapi belum yakin 100%
-            line = f"[{spin}] 🤔 {current_label} ({current_prob * 100:.1f}%)  Vol: [{vol_bar}] {current_rms:5.0f}"
+        lbl = current_label
+        if "MENILAI" in lbl:
+            # Contoh: "MENILAI FIRETRUCK..." -> "?FIRE"
+            parsed = False
+            for k, v in SHORT_LABELS.items():
+                if k in lbl:
+                    lbl = f"?{v}"
+                    parsed = True
+                    break
+            if not parsed:
+                lbl = "??"
         else:
-            line = f"  🚨🚨  {current_label} ({current_prob * 100:.1f}%)  🚨🚨   Vol: [{vol_bar}] {current_rms:5.0f}"
+            lbl = SHORT_LABELS.get(lbl, lbl)
+            
+        if PAUSED:
+            line = f"[{spin}] PAUSED | Vol: {vol_bar} ({current_rms:.0f})"
+        else:
+            line = f"[{spin}] {lbl} ({current_prob * 100:.0f}%) | Vol: {vol_bar} ({current_rms:.0f})"
             
         try:
-            sys.stdout.write(f"\r{line:<75}")
+            # Hapus sisa baris secara bersih dan cetak satu baris pendek
+            sys.stdout.write(f"\r\033[K{line}")
             sys.stdout.flush()
-        except UnicodeEncodeError:
-            # Fallback ke ASCII jika terminal Windows tidak mendukung UTF-8
-            ascii_bar = '#' * bar_len + '-' * (25 - bar_len)
+        except:
+            # Fallback jika tidak mendukung ANSI
+            ascii_bar = '#' * bar_len + '-' * (6 - bar_len)
             if PAUSED:
-                line_ascii = f"[{spin}] PAUSED  Vol: [{ascii_bar}] {current_rms:5.0f}"
-            elif current_label == 'NORMAL':
-                line_ascii = f"[{spin}] Mendengarkan  Vol: [{ascii_bar}] {current_rms:5.0f}"
-            elif "MENILAI" in current_label:
-                line_ascii = f"[{spin}] ? {current_label} ({current_prob * 100:.1f}%)  Vol: [{ascii_bar}] {current_rms:5.0f}"
+                line_ascii = f"[{spin}] PAUSED | Vol: {ascii_bar} ({current_rms:.0f})"
             else:
-                line_ascii = f"  !!!  {current_label} ({current_prob * 100:.1f}%)  !!!   Vol: [{ascii_bar}] {current_rms:5.0f}"
+                line_ascii = f"[{spin}] {lbl} ({current_prob * 100:.0f}%) | Vol: {ascii_bar} ({current_rms:.0f})"
             try:
-                sys.stdout.write(f"\r{line_ascii:<75}")
+                sys.stdout.write(f"\r{line_ascii:<45}")
                 sys.stdout.flush()
             except:
                 pass
@@ -243,8 +258,9 @@ def process_audio():
         rms = np.sqrt(np.mean(audio_data**2))
         current_rms = rms * 32768
 
-        # Suara terlalu pelan → Langsung kembali ke NORMAL secara instan (Noise Gate disamakan dengan ESP32 = 0.04)
-        if rms < 0.04:
+        # Suara terlalu pelan → Langsung kembali ke NORMAL secara instan
+        # Threshold diturunkan ke 0.01 agar suara HP dekat mic laptop bisa terdeteksi
+        if rms < 0.01:
             loud_chunks_count = 0
             locked_class = None
             ema_probs[:] = np.array([0.0, 0.0, 1.0, 0.0], dtype=np.float32)

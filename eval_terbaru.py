@@ -37,9 +37,17 @@ _mel_fb  = librosa.filters.mel(sr=SAMPLE_RATE, n_fft=N_FFT, n_mels=N_MELS, fmin=
 
 def extract_features(y):
     if len(y) < TARGET_LEN:
-        y = np.pad(y, (0, TARGET_LEN - len(y)))
+        repeats = int(np.ceil(TARGET_LEN / len(y)))
+        y = np.tile(y, repeats)[:TARGET_LEN]
     else:
         y = y[:TARGET_LEN]
+        
+    # NORMALIZE AUDIO (Auto-Gain) with max 10x boost
+    max_val = np.max(np.abs(y))
+    if max_val > 1e-6:
+        gain = min(1.0 / max_val, 10.0)
+        y = y * gain
+        
     y = np.convolve(y, [1/3, 1/3, 1/3], mode='same')
     n_frames = (TARGET_LEN - N_FFT) // HOP_LENGTH + 1
     log_mel_frames = []
@@ -64,15 +72,20 @@ out_det = interpreter.get_output_details()[0]
 
 def predict(spec):
     inp = spec[np.newaxis, :, :, np.newaxis].astype(np.float32)
-    sc  = inp_det['quantization_parameters']['scales'][0]
-    zp  = inp_det['quantization_parameters']['zero_points'][0]
-    inp_q = np.clip(np.round(inp / sc) + zp, -128, 127).astype(np.int8)
-    interpreter.set_tensor(inp_det['index'], inp_q)
-    interpreter.invoke()
-    out = interpreter.get_tensor(out_det['index'])[0].astype(np.float32)
-    sc2 = out_det['quantization_parameters']['scales'][0]
-    zp2 = out_det['quantization_parameters']['zero_points'][0]
-    probs = (out - zp2) * sc2
+    if inp_det['dtype'] == np.int8 or inp_det['dtype'] == np.uint8:
+        sc  = inp_det['quantization_parameters']['scales'][0]
+        zp  = inp_det['quantization_parameters']['zero_points'][0]
+        inp_q = np.clip(np.round(inp / sc) + zp, -128, 127).astype(np.int8)
+        interpreter.set_tensor(inp_det['index'], inp_q)
+        interpreter.invoke()
+        out = interpreter.get_tensor(out_det['index'])[0].astype(np.float32)
+        sc2 = out_det['quantization_parameters']['scales'][0]
+        zp2 = out_det['quantization_parameters']['zero_points'][0]
+        probs = (out - zp2) * sc2
+    else:
+        interpreter.set_tensor(inp_det['index'], inp)
+        interpreter.invoke()
+        probs = interpreter.get_tensor(out_det['index'])[0].astype(np.float32)
     return probs
 
 print("=" * 60)

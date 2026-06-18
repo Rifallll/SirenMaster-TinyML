@@ -55,6 +55,12 @@ def extract_melspec(y, sr=SAMPLE_RATE):
     else:
         y = y[:target_len]
         
+    # NORMALIZE AUDIO (Auto-Gain) with max 10x boost
+    max_val = np.max(np.abs(y))
+    if max_val > 1e-6:
+        gain = min(1.0 / max_val, 10.0)
+        y = y * gain
+        
     # 1. 3-tap moving average filter (Low Pass Filter)
     # Using np.convolve with [1/3, 1/3, 1/3], mode='same' matches C++ logic
     y_smoothed = np.convolve(y, [1/3, 1/3, 1/3], mode='same')
@@ -98,13 +104,23 @@ def process_single_file(fp, label, is_training):
     try:
         y, sr = librosa.load(fp, sr=SAMPLE_RATE)
         
-        if is_training:
-            hop = target_len // 2
+        chunks = []
+        if len(y) >= target_len:
+            if is_training:
+                hop = target_len // 2
+            else:
+                hop = target_len
+            for start in range(0, len(y) - target_len + 1, hop):
+                chunks.append(y[start:start+target_len])
         else:
-            hop = target_len
-            
-        for start in range(0, len(y) - target_len + 1, hop):
-            chunk = y[start:start+target_len]
+            rms = np.sqrt(np.mean(y**2))
+            if rms >= 0.001:
+                # Tiling (repeating) instead of constant zero padding
+                repeats = int(np.ceil(target_len / len(y)))
+                tiled = np.tile(y, repeats)[:target_len]
+                chunks.append(tiled)
+                
+        for chunk in chunks:
             rms = np.sqrt(np.mean(chunk**2))
             if rms < 0.001:
                 continue
@@ -137,9 +153,6 @@ def process_single_file(fp, label, is_training):
                 feat_vol = extract_melspec(chunk_vol)
                 X_file.append(feat_vol)
                 y_file.append(label)
-                
-                # Mematikan Pitch Shift dan Random Shift sementara agar jumlah dataset
-                # tidak meledak hingga 150.000 sampel (memangkas waktu training dari 1 jam -> 10 menit)
                 
                 # --- NEW: AUDIO MIXING AUGMENTATION (Sirine + Keramaian) ---
                 if label != 2 and len(HARD_NEGS_FILES) > 0:
@@ -180,15 +193,6 @@ def process_single_file(fp, label, is_training):
                             y_file.append(label)
                     except Exception as e:
                         pass
-                
-        # Pad short files
-        if len(y) < target_len and len(y) >= target_len // 2:
-            rms = np.sqrt(np.mean(y**2))
-            if rms >= 0.001:
-                padded = np.pad(y, (0, target_len - len(y)), mode='constant')
-                feat = extract_melspec(padded)
-                X_file.append(feat)
-                y_file.append(label)
     except Exception as e:
         pass
         
@@ -225,7 +229,7 @@ def compute_dataset_fingerprint(file_paths):
     sorted_paths = sorted(file_paths)
     fingerprint_str = "".join([f"{fp}:{os.path.getsize(fp)}" for fp in sorted_paths])
     # Add version salt to invalidate old cache and force regeneration with new oversampling rules
-    fingerprint_str += "v4_dsp_sync_dedup"
+    fingerprint_str += "v6_normalized_dsp"
     return hashlib.md5(fingerprint_str.encode('utf-8')).hexdigest()
 
 def main():
@@ -352,26 +356,23 @@ def main():
     X_test_scaled = X_test_scaled[..., np.newaxis]
     
     print("\n[*] Applying in-memory SpecAugment...", flush=True)
-    def apply_spec_augment(X, freq_masking_max_percentage=0.15, time_masking_max_percentage=0.15):
-        X_aug = X.copy()
-        num_samples, time_steps, freq_bins, channels = X_aug.shape
-        for i in range(num_samples):
+    def apply_spec_augment_inplace(X, fraction=0.3, freq_masking_max_percentage=0.15, time_masking_max_percentage=0.15):
+        num_samples, time_steps, freq_bins, channels = X.shape
+        indices = np.random.choice(num_samples, int(num_samples * fraction), replace=False)
+        for i in indices:
             # Frequency masking
             freq_mask_size = int(freq_bins * freq_masking_max_percentage)
             if freq_mask_size > 0:
                 f0 = np.random.randint(0, freq_bins - freq_mask_size + 1)
-                X_aug[i, :, f0:f0+freq_mask_size, :] = 0.0
+                X[i, :, f0:f0+freq_mask_size, :] = 0.0
             
             # Time masking
             time_mask_size = int(time_steps * time_masking_max_percentage)
             if time_mask_size > 0:
                 t0 = np.random.randint(0, time_steps - time_mask_size + 1)
-                X_aug[i, t0:t0+time_mask_size, :, :] = 0.0
-        return X_aug
-        
-    X_train_aug = apply_spec_augment(X_train_scaled)
-    X_train_scaled = np.concatenate([X_train_scaled, X_train_aug], axis=0)
-    y_train = np.concatenate([y_train, y_train], axis=0)
+                X[i, t0:t0+time_mask_size, :, :] = 0.0
+                
+    apply_spec_augment_inplace(X_train_scaled, fraction=0.3)
     
     # Shuffle the augmented training set
     idx = np.random.permutation(len(X_train_scaled))
@@ -440,8 +441,8 @@ def main():
     print("\n[*] Training CNN model...", flush=True)
     model.fit(
         X_train_scaled, y_train,
-        epochs=20, # Diperbesar dari 8 menjadi 20 agar AI belajar lebih dalam
-        batch_size=512, # Batch size diperbesar
+        epochs=25, # Diubah menjadi 25 epoch agar model sempat belajar optimal
+        batch_size=512, # Kembalikan ke 512 agar gradient update lebih sering dan model konvergen sempurna
         validation_data=(X_test_scaled, y_test),
         class_weight=class_weight_dict,
         callbacks=callbacks,
@@ -463,24 +464,21 @@ def main():
     print("\nClassification Report:", flush=True)
     print(classification_report(y_test, y_pred, target_names=CATEGORIES), flush=True)
     
-    # 7. Quantization to INT8
-    print("\n[*] Quantizing model to INT8 for TFLite Micro deployment...", flush=True)
-    def representative_data_gen():
-        for i in range(min(300, len(X_train_scaled))):
-            yield [X_train_scaled[i:i+1].astype(np.float32)]
-            
+    # 7. Quantization: Dynamic Range INT8 (best for BatchNorm models)
+    # Full INT8 (inference_input_type=tf.int8) causes ~10% accuracy drop due to
+    # BatchNormalization sensitivity. Dynamic Range keeps activations as float32
+    # and only quantizes weights to INT8 → same size benefit, no accuracy loss.
+    print("\n[*] Quantizing model to Dynamic Range INT8 for TFLite Micro deployment...", flush=True)
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    converter.representative_dataset = representative_data_gen
-    converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-    converter.inference_input_type = tf.int8
-    converter.inference_output_type = tf.int8
+    # NO representative_dataset, NO inference_input_type/output_type
+    # → weights INT8 at rest, activations float32 at runtime
     tflite_quant_model = converter.convert()
     
     # Save quantized TFLite binary to disk for local testing
     with open('siren_model_quant.tflite', 'wb') as f_tflite:
         f_tflite.write(tflite_quant_model)
-    print("  Quantized model saved to siren_model_quant.tflite", flush=True)
+    print("  Dynamic Range INT8 model saved to siren_model_quant.tflite", flush=True)
     print(f"  Quantized model size: {len(tflite_quant_model)/1024:.2f} KB", flush=True)
     
     # 8. Compute windowing and filterbanks

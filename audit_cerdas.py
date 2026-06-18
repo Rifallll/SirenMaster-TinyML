@@ -20,8 +20,7 @@ def get_source_group(filename):
     """Ambil nama sumber rekaman (tanpa _loud, _original, _noise_light, _shift, aug_, dll)"""
     name = os.path.splitext(filename)[0]
     # Hapus prefix augmentasi
-    name = re.sub(r'^aug_\w+_\d+_', '', name)
-    name = re.sub(r'^aug_\w+_', '', name)
+    name = re.sub(r'^aug_[a-zA-Z]+_(\d+_)?', '', name)
     # Hapus suffix varian
     name = re.sub(r'_(loud|original|noise_light|shift|seg\d+|part\d+)$', '', name)
     name = re.sub(r'_\d+$', '', name)
