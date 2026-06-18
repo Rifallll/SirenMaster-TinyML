@@ -72,7 +72,7 @@
 #define MIC_GAIN    2.5f
 
 // ── Inference ────────────────────────────────────────────────
-#define CONFIDENCE_THR    0.92f
+#define CONFIDENCE_THR    0.50f   // Pre-filter longgar → lebih banyak frame masuk EMA
 #define TENSOR_ARENA_KB   85
 
 const char *CLASS_LABELS[NUM_CLASSES] = {"AMBULANCE", "FIRETRUCK", "NOISE", "POLICE"};
@@ -117,8 +117,8 @@ static SemaphoreHandle_t lcdMutex = NULL;
 // Smart detect — EMA
 static float ema_probs[NUM_CLASSES] = {0.0f, 0.0f, 1.0f, 0.0f};
 #define EMA_ALPHA         0.15f
-#define SIREN_THRESHOLD   0.80f
-#define OVERRIDE_THRESHOLD 0.95f
+#define SIREN_THRESHOLD   0.65f   // Turun dari 0.80 → lock-on lebih cepat
+#define OVERRIDE_THRESHOLD 0.90f
 static int locked_class_idx = 2;
 
 // Adaptive Noise Floor
@@ -640,13 +640,12 @@ void applyOutputs(int cls, float conf, bool thinking) {
     setRGBSafe(0, 0, 0);
     motorPattern = 0;
   } else if (thinking) {
-    // THINKING: LED solid redup, motor OFF dulu
+    // THINKING: LED solid redup + motor buzz pelan (AI mulai yakin)
     switch (cls) {
-      case 0: setRGBSafe(100, 0, 0);   break;  // Merah redup
-      case 1: setRGBSafe(100, 60, 0);  break;  // Kuning redup
-      case 3: setRGBSafe(0, 0, 100);   break;  // Biru redup
+      case 0: setRGBSafe(100, 0, 0);   motorPattern = 1; break;  // Merah redup + buzz
+      case 1: setRGBSafe(100, 60, 0);  motorPattern = 2; break;  // Kuning redup + buzz
+      case 3: setRGBSafe(0, 0, 100);   motorPattern = 3; break;  // Biru redup + buzz
     }
-    motorPattern = 0;
   } else {
     // ALERT PENUH: Motor aktif, RGB dikendalikan strobe
     switch (cls) {
