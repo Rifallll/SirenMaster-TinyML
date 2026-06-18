@@ -18,7 +18,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <driver/i2s.h>
-#include <driver/ledc.h>  // PWM untuk LED RGB
+// PWM LED RGB via Arduino Core v3.x pin-based LEDC API
 
 // ── TensorFlow Lite Micro (Chirale v2.0) ─────────────────────
 #include "tensorflow/lite/micro/micro_interpreter.h"
@@ -44,10 +44,7 @@
 #define LED_G_PIN   27
 #define LED_B_PIN   21
 
-// LEDC Channels untuk RGB
-#define LEDC_CH_R   0
-#define LEDC_CH_G   1
-#define LEDC_CH_B   2
+// LEDC PWM config (pin-based API, Core v3.x)
 #define LEDC_FREQ   5000   // 5kHz PWM
 #define LEDC_RES    8      // 8-bit (0-255)
 
@@ -149,23 +146,20 @@ static float targetAmplitude  = 0;
 // ═══════════════════════════════════════════════════════════════
 
 void setupRGB() {
-  // Inisialisasi LEDC PWM untuk 3 channel LED
-  ledcSetup(LEDC_CH_R, LEDC_FREQ, LEDC_RES);
-  ledcSetup(LEDC_CH_G, LEDC_FREQ, LEDC_RES);
-  ledcSetup(LEDC_CH_B, LEDC_FREQ, LEDC_RES);
-  ledcAttachPin(LED_R_PIN, LEDC_CH_R);
-  ledcAttachPin(LED_G_PIN, LEDC_CH_G);
-  ledcAttachPin(LED_B_PIN, LEDC_CH_B);
-  ledcWrite(LEDC_CH_R, 0);
-  ledcWrite(LEDC_CH_G, 0);
-  ledcWrite(LEDC_CH_B, 0);
+  // ESP32 Core v3.x: pin-based LEDC API (ledcSetup/ledcAttachPin dihapus)
+  ledcAttach(LED_R_PIN, LEDC_FREQ, LEDC_RES);
+  ledcAttach(LED_G_PIN, LEDC_FREQ, LEDC_RES);
+  ledcAttach(LED_B_PIN, LEDC_FREQ, LEDC_RES);
+  ledcWrite(LED_R_PIN, 0);
+  ledcWrite(LED_G_PIN, 0);
+  ledcWrite(LED_B_PIN, 0);
 }
 
-// Tulis RGB dalam nilai 0-255
+// Tulis RGB dalam nilai 0-255 (pin-based)
 void setRGBPWM(uint8_t r, uint8_t g, uint8_t b) {
-  ledcWrite(LEDC_CH_R, r);
-  ledcWrite(LEDC_CH_G, g);
-  ledcWrite(LEDC_CH_B, b);
+  ledcWrite(LED_R_PIN, r);
+  ledcWrite(LED_G_PIN, g);
+  ledcWrite(LED_B_PIN, b);
 }
 
 // Wrapper boolean untuk kompatibilitas kode lama (1 = ON, 0 = OFF)
