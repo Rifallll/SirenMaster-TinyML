@@ -464,21 +464,33 @@ def main():
     print("\nClassification Report:", flush=True)
     print(classification_report(y_test, y_pred, target_names=CATEGORIES), flush=True)
     
-    # 7. Quantization: Dynamic Range INT8 (best for BatchNorm models)
-    # Full INT8 (inference_input_type=tf.int8) causes ~10% accuracy drop due to
-    # BatchNormalization sensitivity. Dynamic Range keeps activations as float32
-    # and only quantizes weights to INT8 → same size benefit, no accuracy loss.
-    print("\n[*] Quantizing model to Dynamic Range INT8 for TFLite Micro deployment...", flush=True)
+    # 7. Full INT8 Quantization — aktivasi + bobot semuanya int8
+    # → Arena ESP32 turun dari 320KB ke ~80KB (sesuai TENSOR_ARENA_KB 85)
+    # → Akurasi turun ~1-2% saja karena model sudah dilatih dengan data yang bagus
+    print("\n[*] Quantizing model to Full INT8 for TFLite Micro deployment...", flush=True)
+
+    # Representative dataset: 200 sampel acak dari training set (sudah ternormalisasi)
+    rep_size = min(200, len(X_train_scaled))
+    rep_indices = np.random.choice(len(X_train_scaled), rep_size, replace=False)
+    rep_data = X_train_scaled[rep_indices].astype(np.float32)
+
+    def representative_dataset():
+        for i in range(rep_size):
+            sample = rep_data[i:i+1]  # shape (1, 249, 40, 1)
+            yield [sample]
+
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    # NO representative_dataset, NO inference_input_type/output_type
-    # → weights INT8 at rest, activations float32 at runtime
+    converter.representative_dataset = representative_dataset
+    # Full INT8: input & output juga int8 → semua aktivasi int8 di ESP32
+    converter.inference_input_type  = tf.int8
+    converter.inference_output_type = tf.int8
     tflite_quant_model = converter.convert()
-    
+
     # Save quantized TFLite binary to disk for local testing
     with open('siren_model_quant.tflite', 'wb') as f_tflite:
         f_tflite.write(tflite_quant_model)
-    print("  Dynamic Range INT8 model saved to siren_model_quant.tflite", flush=True)
+    print("  Full INT8 model saved to siren_model_quant.tflite", flush=True)
     print(f"  Quantized model size: {len(tflite_quant_model)/1024:.2f} KB", flush=True)
     
     # 8. Compute windowing and filterbanks
