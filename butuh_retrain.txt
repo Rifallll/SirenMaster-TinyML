@@ -1,0 +1,50 @@
+DAFTAR FILE BERMASALAH (BUTUH LATIH ULANG)
+======================================================================
+Tanggal : 2026-07-27 16:31:15
+Total   : 9 file
+
+
+[AMBULANCE] — 2 file:
+------------------------------------------------------------
+  File    : ambulance_0006_seg01.wav
+  Masalah : TIDAK TERDETEKSI (Layar diam / Sistem Aman)
+  Path    : C:\Users\ASUS\Videos\DATASET\AMBULANCE\ambulance_0006_seg01.wav
+
+  File    : ambulance_0012_seg01.wav
+  Masalah : TIDAK TERDETEKSI (Layar diam / Sistem Aman)
+  Path    : C:\Users\ASUS\Videos\DATASET\AMBULANCE\ambulance_0012_seg01.wav
+
+
+[DAMKAR] — 6 file:
+------------------------------------------------------------
+  File    : fire_0017_seg01.wav
+  Masalah : SALAH DETEKSI (Malah menebak POLISI)
+  Path    : C:\Users\ASUS\Videos\DATASET\FIRETRUCK\fire_0017_seg01.wav
+
+  File    : fire_0039_seg01.wav
+  Masalah : TIDAK TERDETEKSI (Layar diam / Sistem Aman)
+  Path    : C:\Users\ASUS\Videos\DATASET\FIRETRUCK\fire_0039_seg01.wav
+
+  File    : fire_0026_seg01.wav
+  Masalah : TIDAK TERDETEKSI (Layar diam / Sistem Aman)
+  Path    : C:\Users\ASUS\Videos\DATASET\FIRETRUCK\fire_0026_seg01.wav
+
+  File    : fire_0027_seg01.wav
+  Masalah : TIDAK TERDETEKSI (Layar diam / Sistem Aman)
+  Path    : C:\Users\ASUS\Videos\DATASET\FIRETRUCK\fire_0027_seg01.wav
+
+  File    : fire_0028_seg01.wav
+  Masalah : TIDAK TERDETEKSI (Layar diam / Sistem Aman)
+  Path    : C:\Users\ASUS\Videos\DATASET\FIRETRUCK\fire_0028_seg01.wav
+
+  File    : fire_0003_seg01.wav
+  Masalah : TIDAK TERDETEKSI (Layar diam / Sistem Aman)
+  Path    : C:\Users\ASUS\Videos\DATASET\FIRETRUCK\fire_0003_seg01.wav
+
+
+[POLISI] — 1 file:
+------------------------------------------------------------
+  File    : police_0009_seg01.wav
+  Masalah : TIDAK TERDETEKSI (Layar diam / Sistem Aman)
+  Path    : C:\Users\ASUS\Videos\DATASET\POLICE\police_0009_seg01.wav
+

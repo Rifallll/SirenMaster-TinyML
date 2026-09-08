@@ -1,0 +1,472 @@
+=== AUDIT TOTAL MISMATCHES REPORT ===
+Total Files Audited: 9543
+Total Mismatches Found (Conf > 85%): 156
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (88.46%) | File: ambulance_0002_seg02.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\ambulance_0002_seg02.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (93.38%) | File: aug_noise_2241_sound_3_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_2241_sound_3_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (91.65%) | File: aug_noise_2259_sound_134_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_2259_sound_134_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (94.44%) | File: aug_noise_2519_sound_29_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_2519_sound_29_1.wav
+
+Folder: [AMBULANCE] | AI predict: [NORMAL] (91.75%) | File: aug_noise_3598_ambulance_0130_seg02.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_3598_ambulance_0130_seg02.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (90.09%) | File: aug_noise_4472_sound_83_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_4472_sound_83_1.wav
+
+Folder: [AMBULANCE] | AI predict: [NORMAL] (90.15%) | File: aug_noise_4715_ambulance_0001_seg04.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_4715_ambulance_0001_seg04.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (86.83%) | File: aug_noise_4757_sound_40_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_4757_sound_40_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (87.42%) | File: aug_noise_4917_sound_17.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_4917_sound_17.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (88.48%) | File: aug_noise_6822_sound_133_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_6822_sound_133_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (91.98%) | File: aug_noise_6997_sound_86_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_6997_sound_86_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (92.68%) | File: aug_noise_7644_sound_134_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_7644_sound_134_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (92.17%) | File: aug_noise_7786_sound_134_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_7786_sound_134_1.wav
+
+Folder: [AMBULANCE] | AI predict: [NORMAL] (88.19%) | File: aug_noise_9235_ambulance_0009_seg04.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_9235_ambulance_0009_seg04.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (94.60%) | File: aug_noise_9689_sound_36_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_9689_sound_36_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (86.71%) | File: aug_noise_ambulance_0003_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_ambulance_0003_seg01.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (87.83%) | File: aug_noise_sound_157.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_sound_157.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (96.46%) | File: aug_noise_sound_29_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_sound_29_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (86.38%) | File: aug_noise_sound_71_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_sound_71_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (92.52%) | File: aug_noise_sound_80_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_noise_sound_80_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (98.88%) | File: aug_pitch_1349_sound_12_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_1349_sound_12_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (95.53%) | File: aug_pitch_1692_sound_72_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_1692_sound_72_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (91.45%) | File: aug_pitch_1831_sound_112_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_1831_sound_112_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (93.66%) | File: aug_pitch_2329_sound_83_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_2329_sound_83_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (97.19%) | File: aug_pitch_2419_sound_200_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_2419_sound_200_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (92.49%) | File: aug_pitch_2839_sound_27_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_2839_sound_27_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (91.06%) | File: aug_pitch_2858_sound_53_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_2858_sound_53_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (94.18%) | File: aug_pitch_3151_sound_74_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_3151_sound_74_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (97.66%) | File: aug_pitch_3612_sound_69_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_3612_sound_69_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (91.97%) | File: aug_pitch_3989_sound_199_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_3989_sound_199_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (88.54%) | File: aug_pitch_4232_sound_176_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_4232_sound_176_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (89.82%) | File: aug_pitch_4728_sound_141_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_4728_sound_141_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (89.80%) | File: aug_pitch_5165_sound_40_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_5165_sound_40_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (98.83%) | File: aug_pitch_5228_sound_198_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_5228_sound_198_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (85.05%) | File: aug_pitch_5360_sound_107_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_5360_sound_107_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (90.45%) | File: aug_pitch_5491_sound_41_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_5491_sound_41_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (98.68%) | File: aug_pitch_5799_sound_60_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_5799_sound_60_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (91.80%) | File: aug_pitch_5952_sound_85_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_5952_sound_85_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (93.10%) | File: aug_pitch_6091_sound_80_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_6091_sound_80_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (86.81%) | File: aug_pitch_6196_sound_64_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_6196_sound_64_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (86.95%) | File: aug_pitch_6677_sound_59_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_6677_sound_59_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (92.12%) | File: aug_pitch_7034_sound_46_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_7034_sound_46_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (88.40%) | File: aug_pitch_7272_sound_122_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_7272_sound_122_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (96.70%) | File: aug_pitch_7652_sound_167_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_7652_sound_167_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (91.79%) | File: aug_pitch_8017_sound_197_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_8017_sound_197_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (97.39%) | File: aug_pitch_8025_sound_120_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_8025_sound_120_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (96.11%) | File: aug_pitch_8390_ambulance_0195_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_8390_ambulance_0195_seg01.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (92.43%) | File: aug_pitch_8847_sound_3_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_8847_sound_3_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (88.07%) | File: aug_pitch_9032_sound_150_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_9032_sound_150_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (95.04%) | File: aug_pitch_9051_ambulance_0119_seg03.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_9051_ambulance_0119_seg03.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (89.89%) | File: aug_pitch_9097_sound_128_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_9097_sound_128_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (86.08%) | File: aug_pitch_9203_sound_58_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_9203_sound_58_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (91.57%) | File: aug_pitch_9438_sound_133_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_9438_sound_133_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (96.02%) | File: aug_pitch_9461_sound_49_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_9461_sound_49_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (93.88%) | File: aug_pitch_9642_sound_133_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_9642_sound_133_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (94.33%) | File: aug_pitch_sound_113_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_sound_113_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (89.97%) | File: aug_pitch_sound_162_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_sound_162_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (91.73%) | File: aug_pitch_sound_196_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_sound_196_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (95.28%) | File: aug_pitch_sound_49_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_pitch_sound_49_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (89.98%) | File: aug_stretch_1398_sound_54.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_1398_sound_54.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (94.28%) | File: aug_stretch_1430_sound_147_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_1430_sound_147_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (93.82%) | File: aug_stretch_1570_sound_58_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_1570_sound_58_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (97.31%) | File: aug_stretch_1663_sound_29_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_1663_sound_29_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (85.25%) | File: aug_stretch_1818_sound_82_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_1818_sound_82_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (94.64%) | File: aug_stretch_1973_sound_80_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_1973_sound_80_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (91.51%) | File: aug_stretch_1999_sound_120_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_1999_sound_120_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (99.96%) | File: aug_stretch_2431_sound_87_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_2431_sound_87_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (97.29%) | File: aug_stretch_2589_sound_127_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_2589_sound_127_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (89.56%) | File: aug_stretch_2736_ambulance_0090_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_2736_ambulance_0090_seg01.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (92.01%) | File: aug_stretch_2902_sound_80_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_2902_sound_80_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (90.21%) | File: aug_stretch_2914_sound_46_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_2914_sound_46_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (90.04%) | File: aug_stretch_3076_sound_177_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_3076_sound_177_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (99.08%) | File: aug_stretch_3127_ambulance_0090_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_3127_ambulance_0090_seg01.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (95.07%) | File: aug_stretch_3149_sound_51_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_3149_sound_51_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (97.46%) | File: aug_stretch_3301_sound_139_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_3301_sound_139_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (96.98%) | File: aug_stretch_3375_sound_49_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_3375_sound_49_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (99.06%) | File: aug_stretch_3445_sound_30_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_3445_sound_30_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (86.70%) | File: aug_stretch_3475_sound_41_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_3475_sound_41_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (98.31%) | File: aug_stretch_3963_sound_147_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_3963_sound_147_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (98.17%) | File: aug_stretch_4282_sound_70_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_4282_sound_70_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (96.08%) | File: aug_stretch_4739_sound_84_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_4739_sound_84_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (88.27%) | File: aug_stretch_4757_ambulance_0204_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_4757_ambulance_0204_seg01.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (91.72%) | File: aug_stretch_4764_sound_133_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_4764_sound_133_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (92.45%) | File: aug_stretch_4802_sound_4_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_4802_sound_4_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (88.89%) | File: aug_stretch_4857_sound_15_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_4857_sound_15_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (86.79%) | File: aug_stretch_5073_sound_59_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_5073_sound_59_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (85.13%) | File: aug_stretch_5103_sound_69_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_5103_sound_69_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (94.33%) | File: aug_stretch_5185_sound_157_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_5185_sound_157_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (99.04%) | File: aug_stretch_5503_sound_174_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_5503_sound_174_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (95.88%) | File: aug_stretch_5536_sound_129_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_5536_sound_129_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (98.17%) | File: aug_stretch_5884_sound_60_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_5884_sound_60_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (96.57%) | File: aug_stretch_5970_sound_135_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_5970_sound_135_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (85.06%) | File: aug_stretch_6192_sound_14.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_6192_sound_14.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (97.35%) | File: aug_stretch_6193_sound_85_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_6193_sound_85_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (86.62%) | File: aug_stretch_6381_sound_141_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_6381_sound_141_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (88.77%) | File: aug_stretch_7117_sound_59_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_7117_sound_59_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (90.17%) | File: aug_stretch_7285_sound_134_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_7285_sound_134_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (91.33%) | File: aug_stretch_7508_sound_18.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_7508_sound_18.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (97.73%) | File: aug_stretch_7515_sound_3_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_7515_sound_3_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (87.12%) | File: aug_stretch_7545_sound_109_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_7545_sound_109_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (92.98%) | File: aug_stretch_7981_sound_30_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_7981_sound_30_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (95.83%) | File: aug_stretch_8234_sound_58_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_8234_sound_58_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (88.91%) | File: aug_stretch_8377_sound_103_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_8377_sound_103_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (99.19%) | File: aug_stretch_8550_sound_5_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_8550_sound_5_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (89.46%) | File: aug_stretch_8621_sound_55_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_8621_sound_55_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (87.93%) | File: aug_stretch_9199_sound_110_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_9199_sound_110_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (96.03%) | File: aug_stretch_9283_sound_180_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_9283_sound_180_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (96.94%) | File: aug_stretch_9559_sound_90_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_9559_sound_90_1.wav
+
+Folder: [AMBULANCE] | AI predict: [FIRETRUCK] (91.62%) | File: aug_stretch_9804_sound_106_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_9804_sound_106_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (95.63%) | File: aug_stretch_9915_sound_71.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_9915_sound_71.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (99.68%) | File: aug_stretch_ambulance_0152_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_ambulance_0152_seg01.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (94.72%) | File: aug_stretch_ambulance_0198_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_ambulance_0198_seg01.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (94.17%) | File: aug_stretch_sound_12_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_sound_12_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (91.69%) | File: aug_stretch_sound_150_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_sound_150_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (88.35%) | File: aug_stretch_sound_35_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_sound_35_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (89.79%) | File: aug_stretch_sound_64_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_sound_64_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (97.56%) | File: aug_stretch_sound_71_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_sound_71_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (94.77%) | File: aug_stretch_sound_73_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_sound_73_1.wav
+
+Folder: [AMBULANCE] | AI predict: [POLICE] (98.43%) | File: aug_stretch_sound_90_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\aug_stretch_sound_90_1.wav
+
+Folder: [AMBULANCE] | AI predict: [NORMAL] (92.48%) | File: yt_indo_0_part_2.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\yt_indo_0_part_2.wav
+
+Folder: [AMBULANCE] | AI predict: [NORMAL] (94.81%) | File: yt_indo_0_part_3.wav
+  Path: C:\Users\ASUS\Videos\DATASET\AMBULANCE\yt_indo_0_part_3.wav
+
+Folder: [FIRETRUCK] | AI predict: [POLICE] (93.06%) | File: fire_0608_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\FIRETRUCK\fire_0608_seg01.wav
+
+Folder: [NORMAL] | AI predict: [FIRETRUCK] (90.12%) | File: aug_pitch_1811_urban_9_115241-9-0-8_2113.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_pitch_1811_urban_9_115241-9-0-8_2113.wav
+
+Folder: [NORMAL] | AI predict: [AMBULANCE] (99.86%) | File: aug_pitch_6009_urban_1_199769-1-0-9_300.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_pitch_6009_urban_1_199769-1-0-9_300.wav
+
+Folder: [NORMAL] | AI predict: [FIRETRUCK] (93.94%) | File: aug_pitch_8927_noise_u9_115241-9-0-2_01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_pitch_8927_noise_u9_115241-9-0-2_01.wav
+
+Folder: [NORMAL] | AI predict: [FIRETRUCK] (99.27%) | File: aug_stretch_1848_noise_u2_97331-2-0-55_01_2599.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_stretch_1848_noise_u2_97331-2-0-55_01_2599.wav
+
+Folder: [NORMAL] | AI predict: [POLICE] (91.35%) | File: aug_stretch_2939_noise_u3_173994-3-0-44_01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_stretch_2939_noise_u3_173994-3-0-44_01.wav
+
+Folder: [NORMAL] | AI predict: [FIRETRUCK] (99.04%) | File: aug_stretch_6010_urban_1_72259-1-7-7.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_stretch_6010_urban_1_72259-1-7-7.wav
+
+Folder: [NORMAL] | AI predict: [FIRETRUCK] (92.47%) | File: aug_stretch_6060_urban_9_93065-9-0-2.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_stretch_6060_urban_9_93065-9-0-2.wav
+
+Folder: [NORMAL] | AI predict: [FIRETRUCK] (97.58%) | File: aug_stretch_6247_urban_0_13230-0-0-6.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_stretch_6247_urban_0_13230-0-0-6.wav
+
+Folder: [NORMAL] | AI predict: [FIRETRUCK] (98.91%) | File: aug_stretch_6254_noise_u1_7389-1-4-10_01_3634.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_stretch_6254_noise_u1_7389-1-4-10_01_3634.wav
+
+Folder: [NORMAL] | AI predict: [FIRETRUCK] (92.80%) | File: aug_stretch_6534_noise_u2_178521-2-0-86_01_8731.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_stretch_6534_noise_u2_178521-2-0-86_01_8731.wav
+
+Folder: [NORMAL] | AI predict: [AMBULANCE] (88.21%) | File: aug_stretch_7093_urban_9_194733-9-0-14.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_stretch_7093_urban_9_194733-9-0-14.wav
+
+Folder: [NORMAL] | AI predict: [FIRETRUCK] (97.94%) | File: aug_stretch_8861_urban_1_72259-1-7-7.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_stretch_8861_urban_1_72259-1-7-7.wav
+
+Folder: [NORMAL] | AI predict: [FIRETRUCK] (93.25%) | File: aug_stretch_9168_urban_9_96921-9-0-11_2909.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\aug_stretch_9168_urban_9_96921-9-0-11_2909.wav
+
+Folder: [NORMAL] | AI predict: [POLICE] (89.67%) | File: hard_neg_murottal_IZnEv9agOZE_part0009.wav
+  Path: C:\Users\ASUS\Videos\DATASET\NORMAL\hard_neg_murottal_IZnEv9agOZE_part0009.wav
+
+Folder: [POLICE] | AI predict: [FIRETRUCK] (98.87%) | File: aug_noise_5102_sound_685_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\aug_noise_5102_sound_685_1.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (88.20%) | File: aug_noise_6011_police_0318_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\aug_noise_6011_police_0318_seg01.wav
+
+Folder: [POLICE] | AI predict: [FIRETRUCK] (98.24%) | File: aug_pitch_4710_sound_689_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\aug_pitch_4710_sound_689_1.wav
+
+Folder: [POLICE] | AI predict: [FIRETRUCK] (97.46%) | File: aug_pitch_5836_sound_725_1.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\aug_pitch_5836_sound_725_1.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (93.51%) | File: police_0002_seg04.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0002_seg04.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (90.72%) | File: police_0002_seg23.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0002_seg23.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (89.36%) | File: police_0002_seg24.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0002_seg24.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (92.20%) | File: police_0002_seg25.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0002_seg25.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (90.42%) | File: police_0002_seg26.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0002_seg26.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (92.63%) | File: police_0002_seg58.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0002_seg58.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (86.98%) | File: police_0002_seg64.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0002_seg64.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (86.20%) | File: police_0002_seg65.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0002_seg65.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (91.49%) | File: police_0002_seg71.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0002_seg71.wav
+
+Folder: [POLICE] | AI predict: [FIRETRUCK] (98.45%) | File: police_0173_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0173_seg01.wav
+
+Folder: [POLICE] | AI predict: [FIRETRUCK] (85.43%) | File: police_0183_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0183_seg01.wav
+
+Folder: [POLICE] | AI predict: [FIRETRUCK] (85.28%) | File: police_0239_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0239_seg01.wav
+
+Folder: [POLICE] | AI predict: [FIRETRUCK] (93.84%) | File: police_0317_seg01.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\police_0317_seg01.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (88.30%) | File: yt_indo_1_part_0.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\yt_indo_1_part_0.wav
+
+Folder: [POLICE] | AI predict: [AMBULANCE] (86.63%) | File: yt_indo_1_part_119.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\yt_indo_1_part_119.wav
+
+Folder: [POLICE] | AI predict: [FIRETRUCK] (85.90%) | File: yt_indo_1_part_160.wav
+  Path: C:\Users\ASUS\Videos\DATASET\POLICE\yt_indo_1_part_160.wav
+

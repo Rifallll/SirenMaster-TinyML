@@ -84,6 +84,46 @@ def main():
             data = stream.read(CHUNK_SAMPLES, exception_on_overflow=False)
             new_chunk = np.frombuffer(data, dtype=np.int16).astype(np.float32) / 32768.0
             
+            # Cek jika user menekan tombol 1, 2, 3, atau 4 (Taruh di ATAS sebelum cek sunyi/volume!)
+            save_idx = -1
+            while msvcrt.kbhit():
+                key = msvcrt.getch().decode('utf-8', errors='ignore').lower()
+                if key == '1': save_idx = 0   # AMBULANCE
+                elif key == '2': save_idx = 1 # FIRETRUCK
+                elif key == '3': save_idx = 2 # NORMAL
+                elif key == '4': save_idx = 3 # POLICE
+                
+            if save_idx != -1:
+                cat_name = CATEGORIES[save_idx]
+                save_dir = cat_name
+                os.makedirs(save_dir, exist_ok=True)
+                ts = int(time.time() * 1000)
+                fname = os.path.join(save_dir, f"live_{cat_name.lower()}_{ts}.wav")
+                
+                # Merekam 10 detik langsung dari mikrofon
+                print(f"\n\n[🔴 MEREKAM 10 DETIK KE '{cat_name}']")
+                print("Silakan buat suara (kipas / bicara / sirene) sekarang juga...")
+                
+                rec_duration = 10.0
+                rec_chunks = int(rec_duration / CHUNK_DURATION) # 10 detik = 10 chunk
+                recorded_frames = []
+                
+                for i in range(rec_chunks):
+                    sys.stdout.write(f"\r[•] Merekam... ({i+1}/{rec_chunks} detik)       ")
+                    sys.stdout.flush()
+                    data_rec = stream.read(CHUNK_SAMPLES, exception_on_overflow=False)
+                    chunk_float = np.frombuffer(data_rec, dtype=np.int16).astype(np.float32) / 32768.0
+                    recorded_frames.append(chunk_float)
+                    
+                full_rec = np.concatenate(recorded_frames)
+                wav_rec_data = (full_rec * 32767).astype(np.int16)
+                wav.write(fname, SAMPLE_RATE, wav_rec_data)
+                
+                print(f"\n[✔ SELESAI] File 10 detik berhasil disimpan di: {fname}\n")
+                print(">>> MENDENGARKAN KEMBALI... <<<")
+                history.clear()
+                continue
+            
             # Geser buffer ke kiri, masukkan chunk baru di kanan
             rolling_buffer = np.roll(rolling_buffer, -CHUNK_SAMPLES)
             rolling_buffer[-CHUNK_SAMPLES:] = new_chunk
@@ -139,25 +179,6 @@ def main():
             # Convert float32 [-1, 1] to int16 before saving
             wav_data = (rolling_buffer * 32767).astype(np.int16)
             wav.write("debug_last_audio.wav", SAMPLE_RATE, wav_data)
-            
-            # Cek jika user menekan tombol 1, 2, 3, atau 4 untuk menyimpan dataset
-            save_idx = -1
-            while msvcrt.kbhit():
-                key = msvcrt.getch().decode('utf-8', errors='ignore').lower()
-                if key == '1': save_idx = 0   # AMBULANCE
-                elif key == '2': save_idx = 1 # FIRETRUCK
-                elif key == '3': save_idx = 2 # NORMAL
-                elif key == '4': save_idx = 3 # POLICE
-                
-            if save_idx != -1:
-                cat_name = CATEGORIES[save_idx]
-                save_dir = cat_name
-                os.makedirs(save_dir, exist_ok=True)
-                ts = int(time.time() * 1000)
-                fname = os.path.join(save_dir, f"live_{cat_name.lower()}_{ts}.wav")
-                wav.write(fname, SAMPLE_RATE, wav_data)
-                sys.stdout.write(f"\n\033[K[+] DITAHAN: Menyimpan ke {cat_name} (4 detik)...\n")
-                sys.stdout.flush()
                 
     except KeyboardInterrupt:
         print("\n\nSistem dihentikan.")

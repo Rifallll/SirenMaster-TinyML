@@ -229,7 +229,7 @@ def compute_dataset_fingerprint(file_paths):
     sorted_paths = sorted(file_paths)
     fingerprint_str = "".join([f"{fp}:{os.path.getsize(fp)}" for fp in sorted_paths])
     # Add version salt to invalidate old cache and force regeneration with new oversampling rules
-    fingerprint_str += "v6_normalized_dsp"
+    fingerprint_str += "v7_rhythm_clean"
     return hashlib.md5(fingerprint_str.encode('utf-8')).hexdigest()
 
 def main():
@@ -254,11 +254,49 @@ def main():
                 for file in files:
                     if file.lower().endswith('.wav'):
                         cat_files.append(os.path.join(root, file))
+            
+            # [CRITICAL FIX] Sub-sampling kelas Sirine (AMBULANCE, FIRETRUCK, POLICE) agar seimbang (1200 file per kelas)
+            if cat in ["AMBULANCE", "FIRETRUCK", "POLICE"] and len(cat_files) > 1200:
+                print(f"  [!] Menyeimbangkan {cat} ({len(cat_files)} file) ke 1200 file terbaik...", flush=True)
+                synth_files = [f for f in cat_files if os.path.basename(f).startswith("SYNTH_") or "guru" in f.lower() or "live" in f.lower()]
+                regular_files = [f for f in cat_files if f not in synth_files]
+                np.random.seed(42)
+                np.random.shuffle(regular_files)
+                needed = max(0, 1200 - len(synth_files))
+                cat_files = synth_files + regular_files[:needed]
+                print(f"      -> {len(synth_files)} file prioritas + {needed} file reguler.", flush=True)
+
+            # [CRITICAL FIX] Sub-sampling kelas NORMAL agar tidak mendominasi AI
+            if cat == "NORMAL" and len(cat_files) > 1500:
+                print(f"  [!] Kelas NORMAL terlalu dominan ({len(cat_files)} file). Memprioritaskan Suara Pengecoh (Hard Negatives)...", flush=True)
+                
+                important_keywords = ["hard", "neg", "telolet", "toa", "masjid", "adzan", "azan", "mosque", "prayer", "vocal", "mimic", "speech", "laugh", "cry", "music", "edm", "whistle", "baby", "siul", "bayi", "horn", "guru", "live", "ultimate"]
+                important_files = []
+                regular_files = []
+                
+                for f in cat_files:
+                    if any(kw in f.lower() for kw in important_keywords):
+                        important_files.append(f)
+                    else:
+                        regular_files.append(f)
+                        
+                np.random.seed(42)
+                np.random.shuffle(regular_files)
+                
+                if len(important_files) >= 1500:
+                    cat_files = important_files[:1500]
+                    needed = 0
+                else:
+                    needed = 1500 - len(important_files)
+                    cat_files = important_files + regular_files[:needed]
+                
+                print(f"      -> Berhasil mengamankan {len(important_files)} suara ekstrem (bayi/siulan/telolet) & {needed} suara bising biasa.", flush=True)
                         
         print(f"  Category '{cat}': found {len(cat_files)} files.", flush=True)
         file_paths.extend(cat_files)
         labels.extend([idx] * len(cat_files))
         groups.extend([get_improved_group_name(fp) for fp in cat_files])
+
         
     file_paths = np.array(file_paths)
     labels = np.array(labels)
@@ -413,13 +451,7 @@ def main():
         layers.Dense(len(CATEGORIES), activation='softmax')
     ])
     
-    # Compatibility fallback for Focal Loss in older TF versions
-    try:
-        loss_fn = tf.keras.losses.SparseCategoricalFocalCrossentropy(gamma=2.0)
-        print("  [INFO] Using SparseCategoricalFocalCrossentropy", flush=True)
-    except AttributeError:
-        print("  [INFO] SparseCategoricalFocalCrossentropy not found, falling back to standard Crossentropy", flush=True)
-        loss_fn = 'sparse_categorical_crossentropy'
+    loss_fn = 'sparse_categorical_crossentropy'
 
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
@@ -428,21 +460,23 @@ def main():
     )
     model.summary()
     
-    # Class weights to help minority classes
+    # Class weights seimbang otomatis
     from sklearn.utils.class_weight import compute_class_weight
-    class_weights = compute_class_weight('balanced', classes=np.unique(y_train), y=y_train)
-    class_weight_dict = {i: w for i, w in enumerate(class_weights)}
+    classes = np.unique(y_train)
+    weights = compute_class_weight('balanced', classes=classes, y=y_train)
+    class_weight_dict = dict(zip(classes, weights))
+    print(f"  [INFO] Class weights otomatis seimbang: {class_weight_dict}", flush=True)
     
     callbacks = [
-        tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True),
+        tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True),
         tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3)
     ]
     
     print("\n[*] Training CNN model...", flush=True)
     model.fit(
         X_train_scaled, y_train,
-        epochs=25, # Diubah menjadi 25 epoch agar model sempat belajar optimal
-        batch_size=512, # Kembalikan ke 512 agar gradient update lebih sering dan model konvergen sempurna
+        epochs=20,
+        batch_size=256,
         validation_data=(X_test_scaled, y_test),
         class_weight=class_weight_dict,
         callbacks=callbacks,

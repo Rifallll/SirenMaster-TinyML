@@ -1,0 +1,20 @@
+# SirenMaster — WeMos S2 Mini (ESP32-S2FN4R2)
+# File ini dibaca otomatis oleh Arduino IDE 2.x
+# Simpan file ini, tutup lalu buka ulang sketch → semua setting langsung terpilih
+
+default_fqbn: esp32:esp32:lolin_s2_mini:CPUFreq=240,FlashFreq=80,FlashMode=dio,FlashSize=4M,PartitionScheme=huge_app,PSRAM=enabled,UploadMode=default,UploadSpeed=921600,DebugLevel=none
+default_port: ""
+
+# ─────────────────────────────────────────────────────────────
+# Penjelasan setiap opsi:
+#
+#  CPUFreq=240         → Clock 240 MHz (maksimal, penting untuk inferensi TFLite)
+#  FlashFreq=80        → Flash SPI 80 MHz
+#  FlashMode=dio       → Mode SPI standar S2 Mini
+#  FlashSize=4M        → Flash 4MB (sesuai S2 Mini)
+#  PartitionScheme=huge_app → 3MB untuk APP (cukup untuk TFLite + model.h 200KB)
+#  PSRAM=enabled       → Aktifkan 2MB PSRAM ← WAJIB untuk ps_malloc()
+#  UploadMode=default  → USB-OTG (kabel USB langsung ke S2 Mini, bukan UART)
+#  UploadSpeed=921600  → Kecepatan upload
+#  DebugLevel=none     → Matikan debug log (hemat flash & RAM)
+# ─────────────────────────────────────────────────────────────

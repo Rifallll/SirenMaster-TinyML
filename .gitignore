@@ -43,3 +43,8 @@ DATASET_ARCHIVE/
 *.log
 .DS_Store
 Thumbs.db
+TRASH/
+00_Legacy_Old_Sounds/
+sirenmaster_main91%- Copy/
+*.bak*
+

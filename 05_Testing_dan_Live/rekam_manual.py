@@ -26,6 +26,7 @@ print("="*60)
 print("Cara Pakai:")
 print(" - Tekan '1' untuk MULAI Merekam AMBULANS")
 print(" - Tekan '2' untuk MULAI Merekam DAMKAR")
+print(" - Tekan '3' untuk MULAI Merekam NORMAL (Suara Random/Bising)")
 print(" - Tekan '4' untuk MULAI Merekam POLISI")
 print(" - Tekan 'SPASI' (atau tombol apa saja) untuk BERHENTI & SIMPAN")
 print(" - Tekan Ctrl+C untuk keluar jika sudah selesai.")
@@ -57,12 +58,16 @@ try:
                 # Hitung durasi rekaman
                 total_samples = sum(len(c) for c in recorded_audio)
                 sec = total_samples / SAMPLE_RATE
-                print(f" [MEREKAM] 🔴 {CATEGORIES[current_cat_idx]} ... ({sec:.1f} detik) (Tekan SPASI untuk Stop)   ", end='\r')
+                text = f" [MEREKAM] 🔴 {CATEGORIES[current_cat_idx]} ... ({sec:.1f} detik) (Tekan SPASI untuk Stop)"
             else:
                 if latest_rms < 0.0005:
-                    print(f" [Siap] Hening... (Tekan 1/2/4 untuk merekam)            ", end='\r')
+                    text = " [Siap] Hening... (Tekan 1/2/3/4 untuk merekam)"
                 else:
-                    print(f" [Siap] Suara Terdengar! (Tekan 1/2/4 untuk merekam)     ", end='\r')
+                    text = " [Siap] Suara Terdengar! (Tekan 1/2/3/4 untuk merekam)"
+            
+            # Gunakan sys.stdout.write dan flush agar tidak tumpang tindih
+            sys.stdout.write('\r' + text + ' ' * 20)
+            sys.stdout.flush()
             
             # Cek keyboard
             if msvcrt.kbhit():

@@ -1,0 +1,126 @@
+LAPORAN BENCHMARK 100 SIRINE -- SIRENMASTER
+======================================================================
+Tanggal         : 2026-07-27 16:31:15
+Durasi          : 52m 16s
+Akurasi Total   : 91/100 = 91.00%
+
+Benar           : 91
+Salah Kelas     : 1
+Diam            : 8
+Lambat          : 0
+
+PERFORMA PER KELAS:
+  KELAS          |  BENAR | SALAH_D | TDK_DET | LAMBAT |  AKURASI
+  AMBULANCE      |     31 |       0 |       2 |      0 |    93.9%
+  DAMKAR         |     27 |       1 |       5 |      0 |    81.8%
+  POLISI         |     33 |       0 |       1 |      0 |    97.1%
+
+CONFUSION MATRIX:
+  Asli/LCD       |    AMB |    DAM |    POL | TDK_DET
+  AMBULANCE      |     31 |      0 |      0 |       2
+  DAMKAR         |      0 |     27 |      1 |       5
+  POLISI         |      0 |      0 |     33 |       1
+
+DETAIL PER RONDE:
+    No | Kelas Asli   | LCD Tampil   | MODE
+  ----------------------------------------------------
+     1 | POLISI       | POLISI       | BENAR
+     2 | AMBULANCE    | AMBULANCE    | BENAR
+     3 | DAMKAR       | DAMKAR       | BENAR
+     4 | AMBULANCE    | TDK_DETEKSI  | TIDAK_TERDETEKSI
+     5 | DAMKAR       | DAMKAR       | BENAR
+     6 | AMBULANCE    | AMBULANCE    | BENAR
+     7 | POLISI       | POLISI       | BENAR
+     8 | AMBULANCE    | AMBULANCE    | BENAR
+     9 | POLISI       | POLISI       | BENAR
+    10 | AMBULANCE    | AMBULANCE    | BENAR
+    11 | DAMKAR       | TDK_DETEKSI  | TIDAK_TERDETEKSI
+    12 | AMBULANCE    | AMBULANCE    | BENAR
+    13 | AMBULANCE    | AMBULANCE    | BENAR
+    14 | AMBULANCE    | AMBULANCE    | BENAR
+    15 | POLISI       | POLISI       | BENAR
+    16 | DAMKAR       | DAMKAR       | BENAR
+    17 | DAMKAR       | DAMKAR       | BENAR
+    18 | DAMKAR       | DAMKAR       | BENAR
+    19 | POLISI       | POLISI       | BENAR
+    20 | DAMKAR       | DAMKAR       | BENAR
+    21 | DAMKAR       | TDK_DETEKSI  | TIDAK_TERDETEKSI
+    22 | AMBULANCE    | TDK_DETEKSI  | TIDAK_TERDETEKSI
+    23 | DAMKAR       | DAMKAR       | BENAR
+    24 | DAMKAR       | TDK_DETEKSI  | TIDAK_TERDETEKSI
+    25 | AMBULANCE    | AMBULANCE    | BENAR
+    26 | AMBULANCE    | AMBULANCE    | BENAR
+    27 | POLISI       | POLISI       | BENAR
+    28 | DAMKAR       | DAMKAR       | BENAR
+    29 | POLISI       | POLISI       | BENAR
+    30 | POLISI       | POLISI       | BENAR
+    31 | DAMKAR       | DAMKAR       | BENAR
+    32 | AMBULANCE    | AMBULANCE    | BENAR
+    33 | POLISI       | POLISI       | BENAR
+    34 | AMBULANCE    | AMBULANCE    | BENAR
+    35 | AMBULANCE    | AMBULANCE    | BENAR
+    36 | DAMKAR       | DAMKAR       | BENAR
+    37 | POLISI       | POLISI       | BENAR
+    38 | DAMKAR       | DAMKAR       | BENAR
+    39 | POLISI       | POLISI       | BENAR
+    40 | POLISI       | POLISI       | BENAR
+    41 | POLISI       | POLISI       | BENAR
+    42 | POLISI       | POLISI       | BENAR
+    43 | AMBULANCE    | AMBULANCE    | BENAR
+    44 | POLISI       | POLISI       | BENAR
+    45 | AMBULANCE    | AMBULANCE    | BENAR
+    46 | DAMKAR       | DAMKAR       | BENAR
+    47 | DAMKAR       | DAMKAR       | BENAR
+    48 | AMBULANCE    | AMBULANCE    | BENAR
+    49 | POLISI       | POLISI       | BENAR
+    50 | AMBULANCE    | AMBULANCE    | BENAR
+    51 | POLISI       | POLISI       | BENAR
+    52 | POLISI       | POLISI       | BENAR
+    53 | DAMKAR       | TDK_DETEKSI  | TIDAK_TERDETEKSI
+    54 | DAMKAR       | DAMKAR       | BENAR
+    55 | AMBULANCE    | AMBULANCE    | BENAR
+    56 | POLISI       | POLISI       | BENAR
+    57 | AMBULANCE    | AMBULANCE    | BENAR
+    58 | AMBULANCE    | AMBULANCE    | BENAR
+    59 | DAMKAR       | DAMKAR       | BENAR
+    60 | DAMKAR       | DAMKAR       | BENAR
+    61 | DAMKAR       | DAMKAR       | BENAR
+    62 | AMBULANCE    | AMBULANCE    | BENAR
+    63 | AMBULANCE    | AMBULANCE    | BENAR
+    64 | DAMKAR       | TDK_DETEKSI  | TIDAK_TERDETEKSI
+    65 | POLISI       | POLISI       | BENAR
+    66 | AMBULANCE    | AMBULANCE    | BENAR
+    67 | DAMKAR       | DAMKAR       | BENAR
+    68 | AMBULANCE    | AMBULANCE    | BENAR
+    69 | DAMKAR       | DAMKAR       | BENAR
+    70 | POLISI       | POLISI       | BENAR
+    71 | POLISI       | POLISI       | BENAR
+    72 | POLISI       | POLISI       | BENAR
+    73 | DAMKAR       | DAMKAR       | BENAR
+    74 | POLISI       | POLISI       | BENAR
+    75 | POLISI       | POLISI       | BENAR
+    76 | AMBULANCE    | AMBULANCE    | BENAR
+    77 | AMBULANCE    | AMBULANCE    | BENAR
+    78 | DAMKAR       | DAMKAR       | BENAR
+    79 | POLISI       | POLISI       | BENAR
+    80 | AMBULANCE    | AMBULANCE    | BENAR
+    81 | DAMKAR       | DAMKAR       | BENAR
+    82 | DAMKAR       | DAMKAR       | BENAR
+    83 | DAMKAR       | DAMKAR       | BENAR
+    84 | DAMKAR       | POLISI       | SALAH_DETEKSI
+    85 | POLISI       | POLISI       | BENAR
+    86 | POLISI       | POLISI       | BENAR
+    87 | POLISI       | POLISI       | BENAR
+    88 | POLISI       | POLISI       | BENAR
+    89 | AMBULANCE    | AMBULANCE    | BENAR
+    90 | POLISI       | POLISI       | BENAR
+    91 | AMBULANCE    | AMBULANCE    | BENAR
+    92 | POLISI       | POLISI       | BENAR
+    93 | POLISI       | POLISI       | BENAR
+    94 | AMBULANCE    | AMBULANCE    | BENAR
+    95 | POLISI       | TDK_DETEKSI  | TIDAK_TERDETEKSI
+    96 | DAMKAR       | DAMKAR       | BENAR
+    97 | DAMKAR       | DAMKAR       | BENAR
+    98 | DAMKAR       | DAMKAR       | BENAR
+    99 | AMBULANCE    | AMBULANCE    | BENAR
+   100 | AMBULANCE    | AMBULANCE    | BENAR

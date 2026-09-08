@@ -1,76 +1,102 @@
 # SirenMaster-TinyML 🚨
 
-**SirenMaster-TinyML** adalah sistem deteksi suara sirine kendaraan darurat waktu-nyata (*real-time emergency vehicle siren detector*) berbasis Kecerdasan Buatan (AI) di perangkat tepi (*edge device*). Sistem ini dirancang menggunakan teknik **TinyML** dengan model **TensorFlow Lite Micro** untuk dijalankan di mikrokontroler **ESP32** dan **laptop/komputer**.
+**SirenMaster-TinyML** adalah sistem deteksi suara sirine kendaraan darurat waktu-nyata (*real-time emergency vehicle siren detector*) berbasis Kecerdasan Buatan (AI) di perangkat tepi (*edge device*). Sistem ini dirancang menggunakan teknik **TinyML** dengan model **TensorFlow Lite Micro (Full INT8 Quantization)** untuk dijalankan pada mikrokontroler **ESP32-S3 / ESP32 WROOM** dan **Laptop/Komputer**.
 
-Sistem ini dapat mengenali 4 kategori suara:
-1. **AMBULANCE** (Ambulans)
-2. **FIRETRUCK** (Pemadam Kebakaran)
-3. **POLICE** (Polisi)
-4. **NORMAL** (Suara jalanan biasa, klakson, mesin, keheningan, dll.)
-
----
-
-## 🌟 Fitur Utama
-
-- **Real-Time DSP & Inference**: Pemrosesan sinyal digital (*Digital Signal Processing*) menggunakan Log-Mel Spectrogram (40 koefisien Mel, 249 frame waktu) yang sinkron 100% antara C++ (ESP32) dan Python (Laptop).
-- **Arsitektur CNN 2D Ringan**: Dirancang khusus agar muat di memori SRAM internal ESP32 (alokasi memori hemat energi ~85 KB).
-- **Active Segment Replication (Tiling)**: Menghindari distorsi jeda hening (*silence*) di awal sirine berbunyi pada mikrofon laptop.
-- **Hot-Swap Online Learning**: Fitur koreksi pintar langsung dari keyboard laptop. Jika AI salah menebak, pengguna cukup menekan tombol angka (`1`-`4`) untuk merekam 8 detik suara terakhir, melakukan *fine-tuning* model lokal dalam waktu <15 detik, dan memperbarui model TFLite laptop serta kode C++ mikrokontroler (`model.h`) secara otomatis tanpa memutus aliran deteksi.
-- **Microcontroller Integration**: Output fisik pada ESP32 berupa layar LCD grafis HUD futuristik, Strobo LED RGB interaktif, dan getaran taktil dari motor getar.
+Sistem ini mengenali 4 kategori suara secara presisi:
+1. 🚑 **AMBULANCE** (Ambulans — Nada *Wail / Yelp / Hi-Lo*)
+2. 🚒 **FIRETRUCK** (Pemadam Kebakaran — Nada *Powercall / Horn / Yelp*)
+3. 🚓 **POLICE** (Polisi — Nada *Phaser / Fast Yelp / Wail*)
+4. 🛡️ **NORMAL** (Suara jalanan biasa, bising mesin, percakapan, klakson, telolet, musik, keheningan)
 
 ---
 
-## 📂 Struktur File Proyek
+## 📊 Performa & Hasil Evaluasi Model AI (Test Set 1.004 Sampel)
 
-- **`test_laptop.py`**: Script utama untuk menjalankan pendeteksian mikrofon secara realtime di laptop dengan visualisasi volume bar.
-- **`fine_tune.py`**: Logika transfer learning cepat (*micro fine-tuning*) untuk fitur hot-swap online learning.
-- **`train_lokal.py`**: Pipeline pelatihan penuh model dari awal dengan augmentasi data tingkat lanjut (*muffling, noise mixing, pitch shifting*).
-- **`check_debug_mic.py`**: Alat bantu debug untuk mengevaluasi akurasi rekaman audio mentah.
-- **`sirenmaster_main/`**: Folder kode program mikrokontroler ESP32 untuk Arduino IDE:
-  - `sirenmaster_main.ino`: Program utama ESP32 menggunakan I2S audio (*Dual Core Task Scheduling*).
-  - `model.h`: Berisi model TFLite terkuantisasi (INT8) dan parameter normalisasi Z-score.
-  - `button_manager.cpp` / `buttonmanager.h`: Manajer tombol daya untuk Deep Sleep.
+Model dilatih menggunakan arsitektur **2D CNN (Separable Convolutional Network)** dengan ukuran terkuantisasi hanya **20.09 KB** sehingga muat di memori SRAM internal ESP32:
+
+- **Akurasi Keseluruhan (Test Accuracy):** **95.1%**
+- **Macro F1-Score:** **0.95**
+- **Normal Noise Rejection:** **99.9% F1-Score** (Nihil False Alarm pada kebisingan umum)
+
+| Kategori | Precision | Recall | F1-Score | Jumlah Test Set |
+| :--- | :---: | :---: | :---: | :---: |
+| 🚑 **AMBULANCE** | **95%** | **91%** | **0.93** | 256 sampel |
+| 🚒 **FIRETRUCK** | **93%** | **97%** | **0.95** | 242 sampel |
+| 🚓 **POLICE** | **92%** | **93%** | **0.93** | 218 sampel |
+| 🛡️ **NORMAL** | **100%** | **98%** | **0.99** | 288 sampel |
 
 ---
 
-## 🔌 Skema Wiring Pin ESP32
+## 🌟 Fitur Utama & Inovasi Teknologi
 
-Berikut adalah pinout koneksi perangkat keras pada mikrokontroler ESP32:
+- **Temporal Consensus Hard Siren Locking**: Penguncian kelas mutlak yang mencegah *flip-flopping* atau lompatan status di tengah-tengah nada sirine akibat resonansi/gema ruangan atau penurunan volume ekor nada.
+- **Auto-Gain Match (10.0x Peak Normalization)**: Sinkronisasi gain dinamik 100% identik antara pemrosesan DSP C++ pada ESP32 dan ekstraksi fitur Python pada laptop.
+- **Ultra-Fast Initial Trigger**: Respon secepat kilat (mengunci sejak Putaran 1-2 pemutaran audio) pada probabilitas sirine $\ge 30\%$.
+- **DSP Feature Extraction**: Log-Mel Spectrogram (40 Mel Filters, 249 Time Frames, Hop 128, FFT 256, Hamming Window, Frame DC Offset Removal).
+- **Dual-Core FreeRTOS Task Scheduling**: Pemisahan tugas pembacaan I2S audio (`TaskAudio` di Core 1) dan inferensi AI/LCD HUD UI (`TaskInference` di Core 0).
+- **Cinematic TFT LCD & Audio Tester Utility**: Visualisasi HUD interaktif pada ST7789 dan script pengujian otomatis `putar_sirene.py`.
 
-| Komponen | Pin Perangkat | Pin ESP32 | Keterangan |
+---
+
+## 📂 Struktur Repositori Proyek
+
+```text
+SirenMaster-TinyML/
+├── 📁 sirenmaster_main/          # Codebase Firmware ESP32 (Arduino IDE)
+│   ├── sirenmaster_main.ino      # Program utama C++ ESP32 (FreeRTOS + TFLite Micro)
+│   ├── model.h                   # Model INT8 TFLite C++ Deployment Header
+│   ├── siren_model_data.h        # Data TFLite Flatbuffer Array
+│   ├── button_manager.cpp        # Manajer Tombol Power & Deep Sleep
+│   └── buttonmanager.h
+├── 📁 04_Training_AI/            # Script Pelatihan & Evaluasi Model
+│   ├── train_lokal.py            # Pipeline retraining model dari awal
+│   └── test_prediction.py        # Pengujian inferensi model lokal
+├── 📁 AMBULANCE/                 # Dataset Murni Ambulans (1.513 file)
+├── 📁 FIRETRUCK/                 # Dataset Murni Damkar (2.048 file)
+├── 📁 POLICE/                    # Dataset Murni Polisi (1.360 file)
+├── 📁 NORMAL/                    # Dataset Murni Kebisingan Jalanan (9.383 file)
+├── 📄 putar_sirene.py            # Script penguji otomatis via speaker laptop
+├── 📄 siren_model_quant.tflite   # Binary model TFLite INT8 (20 KB)
+├── 📄 siren_scaler.npz           # Parameter Z-Score Mean & Std
+└── 📄 README.md                  # Dokumentasi Proyek
+```
+
+---
+
+## 🔌 Skema Wiring Pin ESP32-S3 / ESP32 WROOM
+
+| Perangkat / Komponen | Pin Perangkat | Pin ESP32 / ESP32-S3 | Keterangan |
 | :--- | :--- | :--- | :--- |
-| **I2S Microphone (INMP441)** | WS | **GPIO 32** | Word Select (I2S CLK) |
-| | SCK | **GPIO 33** | Serial Clock |
-| | SD | **GPIO 35** | Serial Data |
-| | VCC / GND | **3.3V / GND** | Daya |
-| **Vibration Motor** | Signal | **GPIO 13** | Output Motor Getar |
-| **LED RGB** | Red / Green / Blue | **GPIO 26 / 27 / 21** | Output Strobo Warna |
-| **LCD ST7789 (SPI)** | SCL (SCK) / SDA (MOSI) | **GPIO 18 / 23** | SPI Hardware |
-| | RES (Reset) / DC | **GPIO 4 / 22** | Kontrol Display |
-| | CS (Chip Select) / BL | **GPIO 14 / 15** | CS & Backlight PWM |
-| **Push Button** | Signal | **GPIO 12** | Tombol Power (Deep Sleep) |
+| **I2S Microphone (INMP441)** | WS | **GPIO 5** | Word Select (I2S Clock) |
+| | SCK | **GPIO 6** | Serial Clock |
+| | SD | **GPIO 7** | Serial Data |
+| | VCC / GND | **3.3V / GND** | Catu Daya |
+| **Vibration Motor** | Signal | **GPIO 13** | Output Getaran Taktil |
+| **Strobo LED RGB** | Red / Green / Blue | **GPIO 38 / 39 / 40** | Output Indikator Warna |
+| **ST7789 TFT LCD Display** | SCL / SDA | **GPIO 36 / 35** | SPI Hardware |
+| | RES / DC | **GPIO 18 / 16** | Reset & Data/Command |
+| | CS / BL | **GPIO 10 / 9** | Chip Select & Backlight PWM |
+| **Push Button** | Signal | **GPIO 8** | Mute / Snooze 10 Detik |
 
 ---
 
-## 🚀 Cara Menjalankan Detektor di Laptop
+## 🚀 Cara Menjalankan & Pengujian Proyek
 
-1. **Instalasi Dependensi**:
-   Pastikan Anda menggunakan Python 3.10 atau 3.11, lalu instal pustaka berikut:
-   ```bash
-   pip install numpy tensorflow sounddevice scipy librosa
-   ```
+### 1. Pengujian Audio di Laptop (`putar_sirene.py`)
+Jalankan penguji audio otomatis untuk membunyikan sirine acak melalui speaker laptop ke mikrokontroler:
+```bash
+python putar_sirene.py
+```
+Pilih opsi **[1] Ujian 10 Sirine Random** atau **[4] Benchmark 100 Sirine**.
 
-2. **Jalankan Pendeteksian Real-Time**:
-   Hubungkan mikrofon laptop Anda, lalu jalankan perintah:
-   ```bash
-   python test_laptop.py
-   ```
+### 2. Kompilasi & Deploy ke ESP32 (Arduino IDE)
+1. Buka folder `sirenmaster_main/` di **Arduino IDE 2.x**.
+2. Pilih Board: **ESP32S3 Dev Module** (atau **ESP32 Dev Module**).
+3. Pilih Partition Scheme: **Huge APP (3MB No OTA / 1MB SPIFFS)**.
+4. Hubungkan ESP32 via kabel USB, pilih port COM yang sesuai (misal: `COM6`).
+5. Klik **Upload (➔)** untuk mengompilasi dan mengunggah program ke ESP32.
 
-3. **Hot-Swap Koreksi Kelas**:
-   Saat script sedang mendengarkan, jika AI salah menebak suara sirine:
-   - Tekan `1` jika suara tersebut seharusnya **AMBULANCE**
-   - Tekan `2` jika suara tersebut seharusnya **FIRETRUCK**
-   - Tekan `3` jika suara tersebut seharusnya **NORMAL**
-   - Tekan `4` jika suara tersebut seharusnya **POLICE**
-   
-   Sistem akan merekam, melatih ulang model AI, dan mengonversinya kembali menjadi C++ `model.h` secara instan.
+---
+
+## 📜 Lisensi & Kontribusi
+Dikembangkan oleh **Rifallll** untuk proyek **SirenMaster TinyML Emergency Vehicle Detection**. Open-source di bawah lisensi MIT.
