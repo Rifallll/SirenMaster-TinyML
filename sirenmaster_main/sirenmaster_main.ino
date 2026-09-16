@@ -725,9 +725,8 @@ int smartDetectEMA(float &out, bool &thinking) {
   }
 
   // ── KALIBRASI BIAS ──────────────────────────────────────────────
-  // AMBULANCE diberikan bobot 1.25f agar seimbang dengan raungan Damkar/Polisi
-  // saat diputar melalui speaker laptop ke mikrofon fisik INMP441
-  const float CAL[NUM_CLASSES] = {1.25f, 0.95f, 1.00f, 0.95f}; // AMB, FIRE, NORM, POL
+  // Seimbang: Bobot proporsional untuk speaker laptop & mikrofon fisik
+  const float CAL[NUM_CLASSES] = {1.10f, 1.00f, 1.00f, 1.00f}; // AMB, FIRE, NORM, POL
   float cal_sum = 0;
   for (int i = 0; i < NUM_CLASSES; i++) {
     cs[i] *= CAL[i];
@@ -780,27 +779,36 @@ int smartDetectEMA(float &out, bool &thinking) {
   float ema_totalSiren = ema_probs[0] + ema_probs[1] + ema_probs[3];
 
   // 1. Jika saat ini sedang mengunci sirine valid (AMBULANCE / DAMKAR / POLISI):
-  // KUNCI KELAS MUTLAK DITAHAN 100% DARI AWAL SAMPAI AKHIR PEMUTARAN!
-  // Dilarang keras melompat/berubah ke kelas sirine lain di tengah-tengah lagu.
   if (current_siren != 2) {
-    // Jika hening / Normal murni mendominasi kuat (Normal >= 65% dan jeda > 2 detik):
-    if (cs[2] >= 0.65f && (now - last_siren_time > 2000UL)) {
+    // A. Transisi Otomatis Antar-Sirine (Jika kendaraan berganti, misal Damkar selesai lalu Polisi lewat):
+    // Jika ada kelas sirine lain yang JELAS menang telak (skor >= 45% dan unggul > 15% dari sirine lama):
+    if (bestSiren != current_siren && blended[bestSiren] >= 0.45f &&
+        blended[bestSiren] > (blended[current_siren] + 0.15f) && blended[bestSiren] > cs[2]) {
+      current_siren = bestSiren;
+      locked_peak_conf = max(cs[bestSiren], ema_probs[bestSiren]);
+      last_siren_time = now;
+      out = locked_peak_conf;
+      return current_siren;
+    }
+
+    // B. Jika hening / Normal murni mendominasi kuat (Normal >= 65% dan jeda > 1.8 detik):
+    if (cs[2] >= 0.65f && (now - last_siren_time > 1800UL)) {
       current_siren = 2;
       locked_peak_conf = 0.0f;
       out = cs[2];
       return 2;
     }
 
-    // Selama sirine masih terdengar (total sirine / nada aktif):
-    if (totalSiren >= 0.35f || cs[current_siren] >= 0.25f || (now - last_siren_time < 2500UL)) {
-      if (cs[current_siren] >= 0.30f || (totalSiren >= 0.40f && totalSiren > cs[2])) {
+    // C. Selama sirine kelas ini masih aktif terdengar (atau jeda ayunan wail < 2.2 detik):
+    if (cs[current_siren] >= 0.20f || ema_probs[current_siren] >= 0.20f || (now - last_siren_time < 2200UL)) {
+      if (cs[current_siren] >= 0.25f) {
         last_siren_time = now;
       }
       out = max(locked_peak_conf, max(cs[current_siren], ema_probs[current_siren]));
-      return current_siren; // PERTAHANKAN KUNCI SIRINE DARI AWAL SAMPAI AKHIR!
+      return current_siren; // TAHAN KELAS INI SELAMA LAGU BERJALAN
     }
 
-    // Jika hening berlanjut > 2.5 detik, baru kembalikan ke SAFE
+    // D. Jika hening / suara sirine kelas ini selesai > 2.2 detik, kembali ke SAFE
     current_siren = 2;
     locked_peak_conf = 0.0f;
     out = cs[2];
