@@ -725,8 +725,8 @@ int smartDetectEMA(float &out, bool &thinking) {
   }
 
   // ── KALIBRASI BIAS ──────────────────────────────────────────────
-  // Seimbang: Bobot proporsional untuk speaker laptop & mikrofon fisik
-  const float CAL[NUM_CLASSES] = {1.10f, 1.00f, 1.00f, 1.00f}; // AMB, FIRE, NORM, POL
+  // Netral seimbang 1.0f (Tanpa amplifikasi buatan agar noise ruangan tidak terangkat)
+  const float CAL[NUM_CLASSES] = {1.00f, 1.00f, 1.00f, 1.00f}; // AMB, FIRE, NORM, POL
   float cal_sum = 0;
   for (int i = 0; i < NUM_CLASSES; i++) {
     cs[i] *= CAL[i];
@@ -771,19 +771,11 @@ int smartDetectEMA(float &out, bool &thinking) {
   thinking = false;
   unsigned long now = millis();
 
-  float ema_best_siren = max(ema_probs[0], max(ema_probs[1], ema_probs[3]));
-
-  // ── [TEMPORAL CONSENSUS HARD SIREN LOCKING] ─────────────────────
-  // Total akumulasi probabilitas sirine (Amb + Fire + Pol)
-  float totalSiren = cs[0] + cs[1] + cs[3];
-  float ema_totalSiren = ema_probs[0] + ema_probs[1] + ema_probs[3];
-
   // 1. Jika saat ini sedang mengunci sirine valid (AMBULANCE / DAMKAR / POLISI):
   if (current_siren != 2) {
-    // A. Transisi Otomatis Antar-Sirine (Jika kendaraan berganti, misal Damkar selesai lalu Polisi lewat):
-    // Jika ada kelas sirine lain yang JELAS menang telak (skor >= 45% dan unggul > 15% dari sirine lama):
-    if (bestSiren != current_siren && blended[bestSiren] >= 0.45f &&
-        blended[bestSiren] > (blended[current_siren] + 0.15f) && blended[bestSiren] > cs[2]) {
+    // A. Transisi Otomatis Antar-Sirine jika jenis sirine berganti:
+    if (bestSiren != current_siren && blended[bestSiren] >= 0.60f &&
+        blended[bestSiren] > (blended[current_siren] + 0.20f) && blended[bestSiren] > cs[2]) {
       current_siren = bestSiren;
       locked_peak_conf = max(cs[bestSiren], ema_probs[bestSiren]);
       last_siren_time = now;
@@ -791,24 +783,24 @@ int smartDetectEMA(float &out, bool &thinking) {
       return current_siren;
     }
 
-    // B. Jika hening / Normal murni mendominasi kuat (Normal >= 65% dan jeda > 1.8 detik):
-    if (cs[2] >= 0.65f && (now - last_siren_time > 1800UL)) {
+    // B. Kembali ke SAFE jika suara normal/hening mendominasi (Normal >= 65% dan jeda > 1.5 detik):
+    if (cs[2] >= 0.65f && (now - last_siren_time > 1500UL)) {
       current_siren = 2;
       locked_peak_conf = 0.0f;
       out = cs[2];
       return 2;
     }
 
-    // C. Selama sirine kelas ini masih aktif terdengar (atau jeda ayunan wail < 2.2 detik):
-    if (cs[current_siren] >= 0.20f || ema_probs[current_siren] >= 0.20f || (now - last_siren_time < 2200UL)) {
-      if (cs[current_siren] >= 0.25f) {
+    // C. Pertahankan kunci selama sirine kelas ini masih terdengar (atau jeda ayunan wail < 2 detik):
+    if (cs[current_siren] >= 0.25f || ema_probs[current_siren] >= 0.25f || (now - last_siren_time < 2000UL)) {
+      if (cs[current_siren] >= 0.30f) {
         last_siren_time = now;
       }
       out = max(locked_peak_conf, max(cs[current_siren], ema_probs[current_siren]));
-      return current_siren; // TAHAN KELAS INI SELAMA LAGU BERJALAN
+      return current_siren;
     }
 
-    // D. Jika hening / suara sirine kelas ini selesai > 2.2 detik, kembali ke SAFE
+    // D. Selesai dan kembali ke SAFE
     current_siren = 2;
     locked_peak_conf = 0.0f;
     out = cs[2];
@@ -816,12 +808,9 @@ int smartDetectEMA(float &out, bool &thinking) {
   }
 
   // 2. Jika status awal saat ini SAFE (belum ada sirine mengunci):
-  // ── SYARAT ANTI-FALSE ALARM KETAT (BEBAS DARI KEBOCORAN SUARA RUANGAN) ──
-  // Syarat mutlak:
-  // 1) Suara sirine WAJIB mengalahkan suara Normal (bestSirenScore > cs[2]). Suara obrolan/lingkungan tidak akan pernah lolos!
-  // 2) Ambang batas jelas: skor kelas sirine >= 40% (0.40f) ATAU total konsensus sirine >= 50% (0.50f).
-  bool sirenTrigger = (bestSirenScore >= 0.40f && bestSirenScore > cs[2]) ||
-                      (totalSiren >= 0.50f && bestSirenScore >= 0.32f && bestSirenScore > cs[2]);
+  // ── AMBANG BATAS ANTI-FALSE ALARM KETAT (MINIMAL 60% & WAJIB MENANG TELAK LAWAN NORMAL) ──
+  // Menjamin 100% suara obrolan, batuk, gesekan meja, atau derau ruangan TIDAK BISA memicu sirine!
+  bool sirenTrigger = (bestSirenScore >= 0.58f && cs[bestSiren] >= 0.60f && bestSirenScore > cs[2]);
 
   if (sirenTrigger) {
     current_siren = bestSiren;
