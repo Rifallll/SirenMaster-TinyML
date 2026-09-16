@@ -776,8 +776,8 @@ int smartDetectEMA(float &out, bool &thinking) {
   // KUNCI KELAS MUTLAK DITAHAN 100% DARI AWAL SAMPAI AKHIR PEMUTARAN!
   // Dilarang keras melompat/berubah ke kelas sirine lain di tengah-tengah lagu.
   if (current_siren != 2) {
-    // Jika hening / Normal murni mendominasi kuat (Normal >= 70% dan jeda > 2.5 detik):
-    if (cs[2] >= 0.70f && (now - last_siren_time > 2500UL)) {
+    // Jika hening / Normal murni mendominasi kuat (Normal >= 65% dan jeda > 2 detik):
+    if (cs[2] >= 0.65f && (now - last_siren_time > 2000UL)) {
       current_siren = 2;
       locked_peak_conf = 0.0f;
       out = cs[2];
@@ -785,15 +785,15 @@ int smartDetectEMA(float &out, bool &thinking) {
     }
 
     // Selama sirine masih terdengar (total sirine / nada aktif):
-    if (totalSiren >= 0.35f || cs[current_siren] >= 0.25f || (now - last_siren_time < 3000UL)) {
-      if (cs[current_siren] > 0.20f || totalSiren > 0.35f) {
+    if (totalSiren >= 0.35f || cs[current_siren] >= 0.25f || (now - last_siren_time < 2500UL)) {
+      if (cs[current_siren] >= 0.30f || (totalSiren >= 0.40f && totalSiren > cs[2])) {
         last_siren_time = now;
       }
       out = max(locked_peak_conf, max(cs[current_siren], ema_probs[current_siren]));
       return current_siren; // PERTAHANKAN KUNCI SIRINE DARI AWAL SAMPAI AKHIR!
     }
 
-    // Jika hening berlanjut > 3 detik, baru kembalikan ke SAFE
+    // Jika hening berlanjut > 2.5 detik, baru kembalikan ke SAFE
     current_siren = 2;
     locked_peak_conf = 0.0f;
     out = cs[2];
@@ -801,9 +801,14 @@ int smartDetectEMA(float &out, bool &thinking) {
   }
 
   // 2. Jika status awal saat ini SAFE (belum ada sirine mengunci):
-  // Pemicu Awal Peka & Respon Cepat (Putaran 1-2 langsung mengunci seketika):
-  if ((totalSiren >= 0.30f && bestSirenScore >= 0.20f && bestSirenScore > max(cs[2] * 0.30f, 0.15f)) ||
-      (bestSirenScore >= 0.30f && bestSirenScore > cs[2])) {
+  // ── SYARAT ANTI-FALSE ALARM KETAT (BEBAS DARI KEBOCORAN SUARA RUANGAN) ──
+  // Syarat mutlak:
+  // 1) Suara sirine WAJIB mengalahkan suara Normal (bestSirenScore > cs[2]). Suara obrolan/lingkungan tidak akan pernah lolos!
+  // 2) Ambang batas jelas: skor kelas sirine >= 45% (0.45f) ATAU total konsensus sirine >= 55% (0.55f).
+  bool sirenTrigger = (bestSirenScore >= 0.45f && bestSirenScore > cs[2]) ||
+                      (totalSiren >= 0.55f && bestSirenScore >= 0.35f && bestSirenScore > cs[2]);
+
+  if (sirenTrigger) {
     current_siren = bestSiren;
     locked_peak_conf = max(bestSirenScore, ema_best_siren);
     last_siren_time = now;
