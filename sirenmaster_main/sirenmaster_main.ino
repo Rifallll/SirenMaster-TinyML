@@ -725,8 +725,9 @@ int smartDetectEMA(float &out, bool &thinking) {
   }
 
   // ── KALIBRASI BIAS ──────────────────────────────────────────────
-  // Seimbang 1.0f karena dataset sudah diaudit & dipilah kamarnya 100% konsisten
-  const float CAL[NUM_CLASSES] = {1.00f, 1.00f, 1.00f, 1.00f}; // AMB, FIRE, NORM, POL
+  // AMBULANCE diberikan bobot 1.25f agar seimbang dengan raungan Damkar/Polisi
+  // saat diputar melalui speaker laptop ke mikrofon fisik INMP441
+  const float CAL[NUM_CLASSES] = {1.25f, 0.95f, 1.00f, 0.95f}; // AMB, FIRE, NORM, POL
   float cal_sum = 0;
   for (int i = 0; i < NUM_CLASSES; i++) {
     cs[i] *= CAL[i];
@@ -747,15 +748,21 @@ int smartDetectEMA(float &out, bool &thinking) {
     for (int i = 0; i < NUM_CLASSES; i++)
       ema_probs[i] /= es;
 
-  // Cari kelas sirine dengan skor tertinggi saat ini
+  // Konsensus Skor Sirine (Gabungan respons cepat cs[i] dan kestabilan EMA)
+  // Mencegah spike 1-frame acak mengunci kelas sirine yang salah
+  float blended[NUM_CLASSES];
+  for (int i = 0; i < NUM_CLASSES; i++) {
+    blended[i] = 0.5f * cs[i] + 0.5f * ema_probs[i];
+  }
+
   int bestSiren = 0;
-  float bestSirenScore = cs[0];
-  if (cs[1] > bestSirenScore) {
-    bestSirenScore = cs[1];
+  float bestSirenScore = blended[0];
+  if (blended[1] > bestSirenScore) {
+    bestSirenScore = blended[1];
     bestSiren = 1;
   }
-  if (cs[3] > bestSirenScore) {
-    bestSirenScore = cs[3];
+  if (blended[3] > bestSirenScore) {
+    bestSirenScore = blended[3];
     bestSiren = 3;
   }
 
@@ -804,13 +811,13 @@ int smartDetectEMA(float &out, bool &thinking) {
   // ── SYARAT ANTI-FALSE ALARM KETAT (BEBAS DARI KEBOCORAN SUARA RUANGAN) ──
   // Syarat mutlak:
   // 1) Suara sirine WAJIB mengalahkan suara Normal (bestSirenScore > cs[2]). Suara obrolan/lingkungan tidak akan pernah lolos!
-  // 2) Ambang batas jelas: skor kelas sirine >= 45% (0.45f) ATAU total konsensus sirine >= 55% (0.55f).
-  bool sirenTrigger = (bestSirenScore >= 0.45f && bestSirenScore > cs[2]) ||
-                      (totalSiren >= 0.55f && bestSirenScore >= 0.35f && bestSirenScore > cs[2]);
+  // 2) Ambang batas jelas: skor kelas sirine >= 40% (0.40f) ATAU total konsensus sirine >= 50% (0.50f).
+  bool sirenTrigger = (bestSirenScore >= 0.40f && bestSirenScore > cs[2]) ||
+                      (totalSiren >= 0.50f && bestSirenScore >= 0.32f && bestSirenScore > cs[2]);
 
   if (sirenTrigger) {
     current_siren = bestSiren;
-    locked_peak_conf = max(bestSirenScore, ema_best_siren);
+    locked_peak_conf = max(cs[bestSiren], ema_probs[bestSiren]);
     last_siren_time = now;
     out = locked_peak_conf;
     return current_siren;
