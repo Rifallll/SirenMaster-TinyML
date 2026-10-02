@@ -45,12 +45,12 @@
 #define HOP_LEN N_HOP_LENGTH
 #define N_FRAMES N_TIME_FRAMES
 #define N_MELS N_MEL_FILTERS
-// MIC_GAIN 5.5f: Sensitivitas lebih tinggi agar mampu menangkap sirine dari
-// speaker laptop maupun dari jarak jauh di jalanan.
-#define MIC_GAIN 5.5f
+// MIC_GAIN 6.5f: Sensitivitas optimal agar mampu menangkap suara sirine dengan jelas
+// dari speaker laptop maupun saat pengujian tanpa 'diam'.
+#define MIC_GAIN 6.5f
 
 // ── AI ────────────────────────────────────────────────────────────
-#define CONFIDENCE_THR 0.50f
+#define CONFIDENCE_THR 0.45f
 #define EMA_ALPHA                                                              \
   0.60f // Dikembalikan ke 0.60: cukup cepat tapi tetap punya efek smoothing
         // anti-bocor
@@ -808,9 +808,9 @@ int smartDetectEMA(float &out, bool &thinking) {
   }
 
   // 2. Jika status awal saat ini SAFE (belum ada sirine mengunci):
-  // ── AMBANG BATAS ANTI-FALSE ALARM KETAT (MINIMAL 60% & WAJIB MENANG TELAK LAWAN NORMAL) ──
-  // Menjamin 100% suara obrolan, batuk, gesekan meja, atau derau ruangan TIDAK BISA memicu sirine!
-  bool sirenTrigger = (bestSirenScore >= 0.58f && cs[bestSiren] >= 0.60f && bestSirenScore > cs[2]);
+  // ── AMBANG BATAS AKTIVASI OPTIMAL (48%) ──
+  // Responsif terhadap audio speaker tanpa terlambat, tetap kebal suara normal/obrolan
+  bool sirenTrigger = (bestSirenScore >= 0.48f && cs[bestSiren] >= 0.48f && bestSirenScore > cs[2]);
 
   if (sirenTrigger) {
     current_siren = bestSiren;
