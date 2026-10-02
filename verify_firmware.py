@@ -3,6 +3,9 @@ import sys
 import subprocess
 import re
 
+# Set encoding for Windows console compatibility
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+
 ARDUINO_CLI_PATHS = [
     r"C:\Program Files\Arduino IDE\resources\app\lib\backend\resources\arduino-cli.exe",
     r"C:\Users\ASUS\AppData\Local\Programs\Arduino IDE\resources\app\lib\backend\resources\arduino-cli.exe",

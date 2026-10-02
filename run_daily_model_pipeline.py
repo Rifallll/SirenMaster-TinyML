@@ -4,6 +4,9 @@ import subprocess
 import datetime
 import re
 
+# Set encoding for Windows console compatibility
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+
 def run_cmd(cmd, cwd=None):
     print(f"\n[RUN] {' '.join(cmd) if isinstance(cmd, list) else cmd}")
     res = subprocess.run(cmd, cwd=cwd, shell=isinstance(cmd, str), capture_output=True, text=True)
