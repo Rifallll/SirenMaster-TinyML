@@ -22,45 +22,40 @@ def set_cell_background(cell, fill_hex):
     tcPr.append(shd)
 
 def add_code_diff_block(doc, title, before_code, after_code, explanation):
-    # Heading for Sub-section
     h = doc.add_heading(title, level=2)
     h.style.font.name = "Arial"
-    h.style.font.size = Pt(12)
+    h.style.font.size = Pt(11.5)
     h.style.font.color.rgb = RGBColor(30, 60, 114)
 
-    # Explanation Paragraph
     p_exp = doc.add_paragraph(explanation)
     p_exp.style.font.name = "Arial"
-    p_exp.style.font.size = Pt(10)
+    p_exp.style.font.size = Pt(9.5)
 
-    # Code Table Comparison (Side-by-side or stacked Before/After)
     tbl = doc.add_table(rows=2, cols=2)
     tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
     
-    # Headers
     h_before = tbl.rows[0].cells[0]
     h_after = tbl.rows[0].cells[1]
     h_before.width = Inches(3.3)
     h_after.width = Inches(3.4)
     
-    set_cell_background(h_before, "FFEBEE") # Soft Red
-    set_cell_background(h_after, "E8F5E9")  # Soft Green
+    set_cell_background(h_before, "FFEBEE")
+    set_cell_background(h_after, "E8F5E9")
     
     p_hb = h_before.paragraphs[0]
     r_hb = p_hb.add_run("❌ SEBELUM (KODE LAMA / MASALAH)")
     r_hb.font.name = "Arial"
-    r_hb.font.size = Pt(9)
+    r_hb.font.size = Pt(8.5)
     r_hb.font.bold = True
     r_hb.font.color.rgb = RGBColor(180, 0, 0)
 
     p_ha = h_after.paragraphs[0]
     r_ha = p_ha.add_run("✅ SESUDAH (KODE BARU / OPTIMAL)")
     r_ha.font.name = "Arial"
-    r_ha.font.size = Pt(9)
+    r_ha.font.size = Pt(8.5)
     r_ha.font.bold = True
     r_ha.font.color.rgb = RGBColor(0, 120, 40)
 
-    # Code contents
     c_before = tbl.rows[1].cells[0]
     c_after = tbl.rows[1].cells[1]
     set_cell_background(c_before, "FFF9F9")
@@ -69,16 +64,16 @@ def add_code_diff_block(doc, title, before_code, after_code, explanation):
     p_cb = c_before.paragraphs[0]
     r_cb = p_cb.add_run(before_code.strip())
     r_cb.font.name = "Consolas"
-    r_cb.font.size = Pt(8.5)
+    r_cb.font.size = Pt(8.0)
     r_cb.font.color.rgb = RGBColor(80, 20, 20)
 
     p_ca = c_after.paragraphs[0]
     r_ca = p_ca.add_run(after_code.strip())
     r_ca.font.name = "Consolas"
-    r_ca.font.size = Pt(8.5)
+    r_ca.font.size = Pt(8.0)
     r_ca.font.color.rgb = RGBColor(10, 70, 20)
 
-    doc.add_paragraph() # Spacer
+    doc.add_paragraph()
 
 def create_word_report(output_path="LAPORAN_MODEL_HARIAN.docx"):
     doc = docx.Document()
@@ -96,38 +91,39 @@ def create_word_report(output_path="LAPORAN_MODEL_HARIAN.docx"):
     # --- TITLE & HEADER ---
     p_title = doc.add_paragraph()
     p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run_title = p_title.add_run("LAPORAN TEKNIS REVIEW & PERBANDINGAN KODE MODEL AI")
+    run_title = p_title.add_run("LAPORAN EVALUASI & BEDAH DATA MODEL AI SIRENMASTER")
     run_title.font.name = "Arial"
-    run_title.font.size = Pt(17)
+    run_title.font.size = Pt(16)
     run_title.font.bold = True
     run_title.font.color.rgb = RGBColor(16, 44, 87)
 
     p_sub = doc.add_paragraph()
     p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run_sub = p_sub.add_run("SirenMaster TinyML — Dokumentasi Perubahan Kode (Before vs After) & Verifikasi ESP32")
+    run_sub = p_sub.add_run("Dokumentasi Riil Hasil Pengujian (Validasi Data vs Live Hardware) & Analisis Salah Kamar")
     run_sub.font.name = "Arial"
-    run_sub.font.size = Pt(11)
+    run_sub.font.size = Pt(10.5)
     run_sub.font.italic = True
     run_sub.font.color.rgb = RGBColor(80, 80, 80)
 
     doc.add_paragraph()
 
-    # --- INFO BOX (TABLE) ---
-    info_table = doc.add_table(rows=5, cols=2)
+    # --- INFO BOX ---
+    info_table = doc.add_table(rows=6, cols=2)
     info_table.alignment = WD_TABLE_ALIGNMENT.CENTER
     info_data = [
-        ("Tanggal Rilis", today_str),
-        ("Git Branch Repositori", branch_name),
-        ("Target Perangkat Keras", "WeMos LOLIN S2 Mini (ESP32-S2FN4R2, 4MB Flash, 2MB PSRAM)"),
-        ("Format Model AI", "TensorFlow Lite INT8 Quantization (model.h C++ Array)"),
+        ("Tanggal Laporan", today_str),
+        ("Git Branch", branch_name),
+        ("Target Board", "WeMos LOLIN S2 Mini (ESP32-S2FN4R2, 4MB Flash, 2MB PSRAM)"),
+        ("Akurasi Dataset Validasi", "79.16% (Data Riil evaluation_report.csv)"),
+        ("Akurasi Pengujian Live 100 Sirine", "57.00% (57 Benar, 32 Diam/Tidak Memicu, 11 Salah Kamar)"),
         ("Status Kompilasi Arduino IDE", "PASSED (Flash: 16%, SRAM: 16%, 0 Error)")
     ]
 
     for i, (label, val) in enumerate(info_data):
         row = info_table.rows[i]
         c1, c2 = row.cells[0], row.cells[1]
-        c1.width = Inches(2.2)
-        c2.width = Inches(4.5)
+        c1.width = Inches(2.3)
+        c2.width = Inches(4.4)
         set_cell_background(c1, "F0F4F8")
         set_cell_background(c2, "FFFFFF")
         
@@ -135,165 +131,72 @@ def create_word_report(output_path="LAPORAN_MODEL_HARIAN.docx"):
         r1 = p1.add_run(label)
         r1.font.bold = True
         r1.font.name = "Arial"
-        r1.font.size = Pt(9.5)
+        r1.font.size = Pt(9.0)
         
         p2 = c2.paragraphs[0]
         r2 = p2.add_run(val)
         r2.font.name = "Arial"
-        r2.font.size = Pt(9.5)
-        if label == "Status Kompilasi Arduino IDE":
+        r2.font.size = Pt(9.0)
+        if "Akurasi" in label:
+            r2.font.bold = True
+        if "Arduino" in label:
             r2.font.bold = True
             r2.font.color.rgb = RGBColor(0, 130, 50)
 
     doc.add_paragraph()
 
-    # --- SECTION 1: PERBANDINGAN KODE SEBELUM VS SESUDAH (CODE DIFFS) ---
-    h1 = doc.add_heading("1. Review Mendalam Perubahan Kode (Before vs After)", level=1)
+    # --- SECTION 1: DATA RIIL EVALUASI & DARI MANA F1-SCORE DIDAPAT ---
+    h1 = doc.add_heading("1. Sumber Data Riil & Penjelasan Perhitungan F1-Score", level=1)
     h1.style.font.name = "Arial"
     h1.style.font.color.rgb = RGBColor(16, 44, 87)
 
-    p_diff_intro = doc.add_paragraph(
-        "Berikut adalah bukti perubahan baris kode program secara langsung antara versi sebelumnya dengan versi terbaru saat ini. "
-        "Perubahan ini dirancang untuk mengatasi false alarm, flicker LED, dan memory overflow pada mikrokontroler ESP32:"
+    p_f1 = doc.add_paragraph(
+        "F1-Score bukan angka rekaan, melainkan hasil perhitungan matematis standar machine learning "
+        "yang dihitung dari pengujian dataset validasi (2.764 sampel audio independen pada file `evaluation_report.csv`).\n\n"
+        "Rumus perhitungan yang digunakan adalah:"
     )
-    p_diff_intro.style.font.name = "Arial"
-    p_diff_intro.style.font.size = Pt(10)
+    p_f1.style.font.name = "Arial"
+    p_f1.style.font.size = Pt(9.5)
 
-    # 1. Trigger Anti-False Alarm
-    add_code_diff_block(
-        doc,
-        title="A. Pengetatan Ambang Batas Pemicu Sirene (Anti False-Alarm)",
-        before_code="""// Syarat lama terlalu longgar:
-bool sirenTrigger = 
-  (bestSirenScore >= 0.40f && bestSirenScore > cs[2]) ||
-  (totalSiren >= 0.50f && bestSirenScore >= 0.32f);
-
-// Akibat: Suara batuk, klakson jauh, atau
-// gesekan meja dapat memicu sirene.""",
-        after_code="""// Syarat baru sangat ketat (Wajib >= 60%):
-bool sirenTrigger = 
-  (bestSirenScore >= 0.58f && 
-   cs[bestSiren] >= 0.60f && 
-   bestSirenScore > cs[2]);
-
-// Hasil: Suara obrolan & derau ruangan 100%
-// ditolak dan tidak akan memicu sirene!""",
-        explanation="Pada versi sebelumnya, ambang batas 40% terlalu rendah sehingga derau latar belakang ruangan yang bising dapat memicu deteksi palsu. Dengan menaikkan ambang batas ke 60% murni dan mewajibkan skor sirine mengalahkan kelas Normal, sistem menjadi 100% kebal false alarm."
+    p_formula = doc.add_paragraph(
+        "• Precision = True Positive / (True Positive + False Positive)  → Dari yang diprediksi kelas X, berapa yang aslinya memang X?\n"
+        "• Recall    = True Positive / (True Positive + False Negative)  → Dari total suara asli kelas X, berapa persen yang berhasil tertangkap?\n"
+        "• F1-Score  = 2 × (Precision × Recall) / (Precision + Recall)   → Rata-rata harmonik antara ketepatan dan ketuntasan deteksi."
     )
+    p_formula.style.font.name = "Consolas"
+    p_formula.style.font.size = Pt(8.5)
+    p_formula.paragraph_format.left_indent = Inches(0.2)
 
-    # 2. Blended Consensus Filter
-    add_code_diff_block(
-        doc,
-        title="B. Algoritma Blended Consensus (Mencegah Spike & Flicker)",
-        before_code="""// Menggunakan skor instan 1-frame:
-int bestSiren = 0;
-float bestSirenScore = cs[0];
-if (cs[1] > bestSirenScore) {
-  bestSirenScore = cs[1];
-  bestSiren = 1;
-}
+    # Tabel Data Riil CSV
+    doc.add_paragraph().add_run("Tabel 1: Hasil Evaluasi Dataset Validasi Riil (2.764 Sampel Audio)").bold = True
+    csv_table = doc.add_table(rows=6, cols=5)
+    csv_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    csv_headers = ["Kategori Suara", "Precision", "Recall", "F1-Score", "Jumlah Sampel (Support)"]
 
-// Akibat: Fluktuasi 1 frame membuat
-// kelas sirine berubah-ubah tidak stabil.""",
-        after_code="""// Gabungan respons cepat & kestabilan riwayat EMA:
-float blended[NUM_CLASSES];
-for (int i = 0; i < NUM_CLASSES; i++) {
-  blended[i] = 0.5f * cs[i] + 0.5f * ema_probs[i];
-}
-
-int bestSiren = 0;
-float bestSirenScore = blended[0];
-if (blended[1] > bestSirenScore) bestSiren = 1;
-if (blended[3] > bestSirenScore) bestSiren = 3;""",
-        explanation="Algoritma Blended Consensus menggabungkan 50% probabilitas frame saat ini dengan 50% probabilitas historis (EMA). Hal ini mencegah fluktuasi acak sesaat yang dapat mengunci jenis sirene yang salah pada LCD."
-    )
-
-    # 3. Dynamic Inter-Siren State Transition
-    add_code_diff_block(
-        doc,
-        title="C. Transisi Antar-Kendaraan Darurat (Dynamic Siren Transition)",
-        before_code="""// Kunci mutlak tanpa transisi:
-if (current_siren != 2) {
-  // Hanya bisa kembali ke normal
-  // Dilarang berpindah ke sirine lain
-  return current_siren;
-}
-
-// Masalah: Jika Damkar lewat lalu disusul
-// Polisi, sistem terkunci di Damkar.""",
-        after_code="""// Deteksi pergantian kendaraan di jalan raya:
-if (bestSiren != current_siren && 
-    blended[bestSiren] >= 0.45f &&
-    blended[bestSiren] > (blended[current_siren] + 0.15f) && 
-    blended[bestSiren] > cs[2]) {
-  current_siren = bestSiren;
-  locked_peak_conf = max(cs[bestSiren], ema_probs[bestSiren]);
-  last_siren_time = now;
-  return current_siren;
-}""",
-        explanation="Jika terdapat konvoi darurat di mana ambulans selesai lewat dan langsung diikuti oleh mobil polisi, algoritma baru akan secara cerdas mengenali pergantian tersebut jika skor kendaraan baru unggul minimal 15% dari kendaraan sebelumnya."
-    )
-
-    # 4. DSP Audio Alignment
-    add_code_diff_block(
-        doc,
-        title="D. Sinkronisasi Ekstraksi Sinyal Python vs C++ (DSP Alignment)",
-        before_code="""# Ekstraksi standar librosa di Python:
-# Tidak menggunakan low-pass filter & DC removal
-mel = librosa.feature.melspectrogram(
-    y=y, sr=sr, n_fft=256, hop_length=128
-)
-log_mel = librosa.power_to_db(mel)
-
-# Akibat: Spektrogram training berbeda
-# dengan hasil mikrofon I2S INMP441 di ESP32.""",
-        after_code="""# Ekstraksi identik 100% dengan C++ Firmware:
-# 1. 3-Tap Moving Average Low Pass Filter
-y_smooth = np.convolve(y, [1/3, 1/3, 1/3], mode='same')
-
-# 2. DC Offset Removal & Hamming Window
-frame_clean = frame_data - np.mean(frame_data)
-frame_win = frame_clean * np.hamming(256)
-
-# 3. Mel Filterbank & Log Floor (1e-9)
-log_mel = np.log(np.dot(mel_fb, power_spec) + 1e-9)""",
-        explanation="Penyelarasan matematika DSP antara Python dan firmware ESP32 memastikan fitur yang dipelajari oleh model AI saat pelatihan sama persis dengan sinyal yang ditangkap oleh mikrofon hardware di lapangan."
-    )
-
-    # --- SECTION 2: HASIL EVALUASI & AKURASI BENCHMARK ---
-    h2 = doc.add_heading("2. Hasil Evaluasi & Akurasi Benchmark", level=1)
-    h2.style.font.name = "Arial"
-    h2.style.font.color.rgb = RGBColor(16, 44, 87)
-
-    acc_table = doc.add_table(rows=6, cols=5)
-    acc_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    headers = ["Kategori Suara", "Akurasi (%)", "Precision", "Recall", "F1-Score"]
-    
-    for j, h_text in enumerate(headers):
-        cell = acc_table.rows[0].cells[j]
+    for j, h_text in enumerate(csv_headers):
+        cell = csv_table.rows[0].cells[j]
         set_cell_background(cell, "102C57")
         p = cell.paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h_text)
         r.font.name = "Arial"
-        r.font.size = Pt(9.5)
+        r.font.size = Pt(9.0)
         r.font.bold = True
         r.font.color.rgb = RGBColor(255, 255, 255)
 
-    eval_rows = [
-        ("AMBULANCE (Ambulans)", "98.5%", "0.98", "0.99", "0.98"),
-        ("FIRETRUCK (Pemadam Kebakaran)", "97.8%", "0.97", "0.98", "0.97"),
-        ("POLICE (Mobil Polisi)", "98.1%", "0.98", "0.98", "0.98"),
-        ("NORMAL (Kebisingan / Noise)", "99.4%", "0.99", "1.00", "0.99"),
-        ("RATA-RATA KESELURUHAN", "98.4%", "0.98", "0.99", "0.98")
+    csv_rows = [
+        ("AMBULANCE", "64.5%", "82.8%", "72.5%", "145 file"),
+        ("FIRETRUCK (Damkar)", "93.9%", "66.7%", "78.0%", "1.328 file"),
+        ("POLICE (Polisi)", "68.7%", "91.6%", "78.5%", "939 file"),
+        ("NORMAL (Kebisingan)", "84.1%", "91.5%", "87.6%", "352 file"),
+        ("RATA-RATA TOTAL (Accuracy)", "79.2%", "79.2%", "79.2%", "2.764 file")
     ]
 
-    for i, row_data in enumerate(eval_rows):
-        row = acc_table.rows[i+1]
-        is_last = (i == len(eval_rows) - 1)
+    for i, r_data in enumerate(csv_rows):
+        row = csv_table.rows[i+1]
+        is_last = (i == len(csv_rows) - 1)
         bg = "EBF2FA" if is_last else ("F9FAFB" if i % 2 == 1 else "FFFFFF")
-        
-        for j, val in enumerate(row_data):
+        for j, val in enumerate(r_data):
             cell = row.cells[j]
             set_cell_background(cell, bg)
             p = cell.paragraphs[0]
@@ -301,76 +204,156 @@ log_mel = np.log(np.dot(mel_fb, power_spec) + 1e-9)""",
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r = p.add_run(val)
             r.font.name = "Arial"
-            r.font.size = Pt(9.5)
+            r.font.size = Pt(9.0)
             if is_last or j == 0:
                 r.font.bold = True
 
     doc.add_paragraph()
 
-    # --- SECTION 3: HASIL VERIFIKASI MEMORI ESP32-S2 ---
-    h3 = doc.add_heading("3. Hasil Verifikasi Memori & Kompilasi Arduino IDE", level=1)
-    h3.style.font.name = "Arial"
-    h3.style.font.color.rgb = RGBColor(16, 44, 87)
+    # --- SECTION 2: BEDAH MASALAH BENCHMARK 100 SIRINE (SALAH KAMAR & DIAM) ---
+    h2 = doc.add_heading("2. Bedah Masalah Pengujian Nyata: Mengapa Terjadi 'Salah Kamar' dan 'Diam'?", level=1)
+    h2.style.font.name = "Arial"
+    h2.style.font.color.rgb = RGBColor(16, 44, 87)
 
-    mem_table = doc.add_table(rows=4, cols=4)
-    mem_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    mem_headers = ["Jenis Memori", "Terpakai", "Kapasitas Maksimal", "Status / Persentase"]
+    p_bm_intro = doc.add_paragraph(
+        "Pada pengujian live 100 audio (`hasil_benchmark_100.txt`), akurasi riil yang didapatkan adalah 57.0%. "
+        "Berikut rincian fakta lapangan penyebab kegagalan dan solusinya:"
+    )
+    p_bm_intro.style.font.name = "Arial"
+    p_bm_intro.style.font.size = Pt(9.5)
 
-    for j, h_text in enumerate(mem_headers):
-        cell = mem_table.rows[0].cells[j]
+    bm_table = doc.add_table(rows=5, cols=4)
+    bm_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    bm_headers = ["Kategori Pengujian", "Total Suara", "Berhasil Benar", "Akurasi Nyata"]
+
+    for j, h_text in enumerate(bm_headers):
+        cell = bm_table.rows[0].cells[j]
         set_cell_background(cell, "102C57")
         p = cell.paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(h_text)
         r.font.name = "Arial"
-        r.font.size = Pt(9.5)
+        r.font.size = Pt(9.0)
         r.font.bold = True
         r.font.color.rgb = RGBColor(255, 255, 255)
 
-    mem_rows = [
-        ("Program Flash Storage", "514.471 bytes", "3.145.728 bytes", "16% (Sangat Ringan)"),
-        ("Internal SRAM", "54.352 bytes", "327.680 bytes", "16% (Sisa 273 KB)"),
-        ("External PSRAM", "Alokasi Heap (ps_malloc)", "2.097.152 bytes (2 MB)", "Aktif (Tensor Arena Aman)")
+    bm_rows = [
+        ("AMBULANCE", "33 audio", "31 audio", "93.9% (Sangat Baik)"),
+        ("DAMKAR (FIRETRUCK)", "33 audio", "4 audio", "12.1% (Penyumbang Error Terbesar)"),
+        ("POLISI (POLICE)", "34 audio", "22 audio", "64.7% (Cukup Baik)"),
+        ("TOTAL LIVE BENCHMARK", "100 audio", "57 audio", "57.0% (57 Benar, 32 Diam, 11 Salah Kamar)")
     ]
 
-    for i, row_data in enumerate(mem_rows):
-        row = mem_table.rows[i+1]
-        for j, val in enumerate(row_data):
+    for i, r_data in enumerate(bm_rows):
+        row = bm_table.rows[i+1]
+        is_last = (i == len(bm_rows) - 1)
+        bg = "EBF2FA" if is_last else ("F9FAFB" if i % 2 == 1 else "FFFFFF")
+        for j, val in enumerate(r_data):
             cell = row.cells[j]
-            set_cell_background(cell, "F9FAFB" if i % 2 == 1 else "FFFFFF")
+            set_cell_background(cell, bg)
             p = cell.paragraphs[0]
             if j > 0:
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r = p.add_run(val)
             r.font.name = "Arial"
-            r.font.size = Pt(9.5)
-            if j == 3:
+            r.font.size = Pt(9.0)
+            if is_last or j == 0:
                 r.font.bold = True
-                r.font.color.rgb = RGBColor(0, 130, 50)
+            if "12.1%" in val:
+                r.font.color.rgb = RGBColor(180, 0, 0)
 
     doc.add_paragraph()
 
-    # --- SECTION 4: KESIMPULAN & PANDUAN PENGUJIAN LAPANGAN ---
-    h4 = doc.add_heading("4. Panduan Eksekusi Upload ke Hardware (Kamis & Jumat)", level=1)
+    # Analisis Penyebab
+    p_why = doc.add_paragraph()
+    p_why.add_run("FAKTOR PENYEBAB DAN SOLUSINYA:\n").bold = True
+    
+    reasons = [
+        ("A. Mengapa Ada 32 Suara 'DIAM' (Tidak Memicu Siren)?",
+         "Penyebab: Ambang batas pemicu sirene pada firmware C++ diset ketat (bestSirenScore >= 0.58f dan cs[bestSiren] >= 0.60f). "
+         "Jika suara sirene yang diputar volumenya rendah, atau nada ayunannya sedang berada di frekuensi lembah, skor sirine hanya mencapai 40%-50%, "
+         "sehingga firmware menganggapnya sebagai Normal. Sistem sengaja memilih 'diam' agar tidak terjadi false alarm sembarangan."),
+        
+        ("B. Mengapa Terjadi 11 Suara 'SALAH KAMAR' (Terutama Damkar 12.1%)?",
+         "Penyebab: Damkar di Indonesia menggunakan kombinasi nada Yelp (cepat) dan Horn/Phaser. Nada Yelp damkar memiliki spektrum frekuensi yang tumpang tindih "
+         "dengan nada Polisi dan Ambulans. Karena data latih Polisi/Ambulans memiliki sampel yang lebih kaya, model AI cenderung 'salah kamar' mengklasifikasikan "
+         "Damkar sebagai Polisi atau Ambulans ketika ragu."),
+        
+        ("C. Solusi yang Sedang Diterapkan Hari Ini:",
+         "1. Menjalankan `fix_firetruck_augment.py` untuk melipatgandakan data Damkar dengan variasi pitch shift, time-stretch, dan noise injection.\n"
+         "2. Menyeimbangkan kalibrasi bobot `CAL[NUM_CLASSES]` di firmware ESP32 agar Damkar tidak tertelan oleh Ambulans/Polisi.")
+    ]
+
+    for t, d in reasons:
+        p_r = doc.add_paragraph()
+        r_t = p_r.add_run(f"• {t}\n")
+        r_t.bold = True
+        r_t.font.color.rgb = RGBColor(30, 60, 114)
+        p_r.add_run(d)
+        p_r.paragraph_format.left_indent = Inches(0.15)
+
+    doc.add_paragraph()
+
+    # --- SECTION 3: PERBANDINGAN KODE BEFORE VS AFTER ---
+    h3 = doc.add_heading("3. Bukti Perubahan Kode Program (Before vs After)", level=1)
+    h3.style.font.name = "Arial"
+    h3.style.font.color.rgb = RGBColor(16, 44, 87)
+
+    add_code_diff_block(
+        doc,
+        title="A. Perubahan Ambang Batas Pemicu Sirene (Mengurangi False Alarm vs Sensitivitas)",
+        before_code="""// Ambang batas lama (Longgar):
+bool sirenTrigger = 
+  (bestSirenScore >= 0.40f && bestSirenScore > cs[2]) ||
+  (totalSiren >= 0.50f && bestSirenScore >= 0.32f);
+
+// Akibat: Sangat sensitif, tapi suara
+// klakson / orang ngobrol bisa memicu.""",
+        after_code="""// Ambang batas baru (Ketat Anti False-Alarm):
+bool sirenTrigger = 
+  (bestSirenScore >= 0.58f && 
+   cs[bestSiren] >= 0.60f && 
+   bestSirenScore > cs[2]);
+
+// Hasil: Kebal suara ruangan bising,
+// namun butuh volume sirine cukup jelas.""",
+        explanation="Perubahan ini menjelaskan mengapa pada pengujian ada audio yang 'diam'. Ambang batas dinaikkan ke 60% untuk mengorbankan sirine yang sangat sayup-sayup demi memastikan di jalan raya tidak terjadi salah deteksi saat tidak ada ambulans."
+    )
+
+    add_code_diff_block(
+        doc,
+        title="B. Algoritma Blended Consensus (Pencegah Salah Kamar 1-Frame)",
+        before_code="""// Mengambil keputusan dari 1 frame instan:
+int bestSiren = 0;
+float bestSirenScore = cs[0];
+if (cs[1] > bestSirenScore) bestSiren = 1;
+if (cs[3] > bestSirenScore) bestSiren = 3;""",
+        after_code="""// Menggabungkan 50% skor instan + 50% EMA:
+float blended[NUM_CLASSES];
+for (int i = 0; i < NUM_CLASSES; i++) {
+  blended[i] = 0.5f * cs[i] + 0.5f * ema_probs[i];
+}
+// Mencegah spike 1-frame acak mengunci salah kamar""",
+        explanation="Dengan algoritma Blended Consensus, fluktuasi sesaat dari nada sirine tidak langsung mengubah kelas sirine, melainkan harus konsisten selama beberapa frame berturut-turut."
+    )
+
+    doc.add_paragraph()
+
+    # --- SECTION 4: KESIMPULAN & STATUS UPLOAD KAMIS/JUMAT ---
+    h4 = doc.add_heading("4. Status Kesiapan Upload Hardware (Kamis & Jumat)", level=1)
     h4.style.font.name = "Arial"
     h4.style.font.color.rgb = RGBColor(16, 44, 87)
 
-    steps = [
-        "1. Buka Arduino IDE 2.x, lalu pilih Open Project ke folder `sirenmaster_main`.",
-        "2. Sambungkan LOLIN S2 Mini via kabel USB data (USB CDC on Boot otomatis aktif).",
-        "3. Tekan `Ctrl + U` untuk Upload. Proses flash akan selesai dalam ~15 detik tanpa perlu menekan tombol BOOT secara manual.",
-        "4. Uji respon deteksi dengan memutar audio sirene dari speaker HP / laptop pada jarak 0.5 meter hingga 3 meter."
-    ]
-
-    for step in steps:
-        p_s = doc.add_paragraph()
-        r_s = p_s.add_run(step)
-        r_s.font.name = "Arial"
-        r_s.font.size = Pt(10)
-        p_s.paragraph_format.left_indent = Inches(0.15)
+    p_status = doc.add_paragraph(
+        "• Kompilasi Arduino IDE: PASSED (Flash 514 KB / 3.14 MB [16%], SRAM 54 KB / 327 KB [16%])\n"
+        "• Rekomendasi Pengujian: Putar audio pada volume sedang-tinggi (jarak 0.5 - 2 meter dari mikrofon ESP32 INMP441) agar sinyal melampaui ambang batas 60%.\n"
+        "• Fokus Retraining Berikutnya: Meningkatkan recall Damkar melalui penambahan variasi nada Phaser & Horn pada dataset."
+    )
+    p_status.style.font.name = "Arial"
+    p_status.style.font.size = Pt(9.5)
 
     doc.save(output_path)
-    print(f"[+] File laporan Microsoft Word lengkap berhasil dibuat: {output_path}")
+    print(f"[+] File Word laporan riil berhasil diperbarui: {output_path}")
 
 if __name__ == "__main__":
     create_word_report()
