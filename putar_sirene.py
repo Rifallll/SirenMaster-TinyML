@@ -8,6 +8,7 @@ Setiap suara diputar 4 KALI BERTURUT-TURUT (~16 detik).
 import sys
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 import os, time, winsound, random, collections, subprocess
+from export_benchmark import export_benchmark_to_excel_and_charts, get_next_pengujian_name, OUTPUT_DIR
 
 ROOT = r"C:\Users\ASUS\Videos\DATASET"
 
@@ -73,13 +74,72 @@ RANDOM_POOL_15 = EXAM_10_SAMPLES + [
 ]
 
 
-def build_pool_100():
-    """Bangun 100 sampel uji seimbang per kelas (33 AMB + 33 DAMKAR + 34 POLISI).
-    Urutan DIACAK agar pengujian real seperti kondisi nyata.
+def load_audit_blacklist():
+    """
+    Membaca laporan_audit_ritme_salah_kamar.txt dan mengembalikan
+    dict {folder_name: set(filenames)} yang PERLU DIEXCLUDE dari pengujian.
+    File yang dianggap salah kamar oleh audit TIDAK akan dimasukkan ke pool pengujian.
+    """
+    import re as _re
+    audit_file = os.path.join(ROOT, "laporan_audit_ritme_salah_kamar.txt")
+    blacklist = {"AMBULANCE": set(), "FIRETRUCK": set(), "POLICE": set()}
+
+    if not os.path.exists(audit_file):
+        return blacklist  # Tidak ada audit → tidak ada exclusion
+
+    try:
+        with open(audit_file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+    except Exception:
+        return blacklist
+
+    for line in lines:
+        line = line.strip()
+        # Format: [SRC -> DST] filename.wav | alasan
+        m = _re.match(r'\[(AMBULANCE|FIRETRUCK|POLICE)\s*->\s*(AMBULANCE|FIRETRUCK|POLICE)\s*\]\s+(\S+\.wav)', line)
+        if m:
+            src_folder = m.group(1)
+            fname = m.group(3)
+            # Hanya exclude _seg01.wav asli (non-aug, non-SYNTH) yang benar-benar ada di disk
+            if (fname.endswith("_seg01.wav")
+                    and not fname.startswith("aug_")
+                    and not fname.startswith("SYNTH_")):
+                fpath = os.path.join(ROOT, src_folder, fname)
+                if os.path.exists(fpath):
+                    blacklist[src_folder].add(fname)
+
+    return blacklist
+
+
+# Cache blacklist audit (dibaca sekali saat startup, bisa di-reload)
+_AUDIT_BLACKLIST = None
+
+
+def get_audit_blacklist(force_reload=False):
+    """Ambil audit blacklist (cached). Set force_reload=True untuk reload dari disk."""
+    global _AUDIT_BLACKLIST
+    if _AUDIT_BLACKLIST is None or force_reload:
+        _AUDIT_BLACKLIST = load_audit_blacklist()
+        total_excluded = sum(len(v) for v in _AUDIT_BLACKLIST.values())
+        if total_excluded > 0:
+            print(f"  [Audit] Blacklist dimuat: {total_excluded} file mislabeled akan dilewati.")
+    return _AUDIT_BLACKLIST
+
+
+def build_pool_100(target_total=100):
+    """Bangun sampel uji seimbang per kelas (default 100 suara).
+    Menggunakan AUDIT BLACKLIST dari laporan_audit_ritme_salah_kamar.txt.
+    Urutan DIACAK secara unik agar pengujian real seperti kondisi nyata.
     Seed = waktu sekarang (setiap run berbeda)."""
 
+    audit_bl = get_audit_blacklist()
+
     def get_seg_files(folder_name, cls_label, target_n):
-        """Ambil file .wav murni (bukan aug/synth/noise), ulangi jika kurang dari target."""
+        """Ambil file .wav murni tanpa duplikat jika memungkinkan.
+        Prioritas 1: File _seg01.wav yang TIDAK ada di audit blacklist (paling bersih).
+        Prioritas 2: Jika terlalu sedikit, ambil file _seg01.wav apapun yang tidak di-blacklist.
+        Prioritas 3: Jika masih kurang, fallback ke semua .wav non-aug/SYNTH.
+        """
         folder_path = os.path.join(ROOT, folder_name)
         if not os.path.exists(folder_path):
             return []
@@ -88,8 +148,22 @@ def build_pool_100():
             "FIRETRUCK": "fire_",
             "POLICE":    "police_"
         }
+
+        # Gabungkan: blacklist hardcoded + blacklist dari audit
+        HARDCODED_EXCLUDE = {
+            "fire_0017_seg01.wav", "fire_0003_seg01.wav", "fire_0093_seg01.wav",
+            "fire_0094_seg01.wav", "fire_0095_seg01.wav", "fire_0039_seg01.wav",
+            "ambulance_0134_seg01.wav", "ambulance_0146_seg01.wav", "ambulance_0167_seg01.wav",
+            "ambulance_0192_seg01.wav", "police_0108_seg01.wav"
+        }
+        # Ambil blacklist dari audit untuk folder ini
+        audit_exclude = audit_bl.get(folder_name, set())
+        ALL_EXCLUDE = HARDCODED_EXCLUDE | audit_exclude
+
         pref = prefix_map.get(folder_name, "")
-        files = sorted([
+
+        # TIER 1: file _seg01.wav AMAN (tidak di blacklist audit)
+        files_tier1 = [
             f for f in os.listdir(folder_path)
             if f.endswith("_seg01.wav")
             and f.lower().startswith(pref)
@@ -98,33 +172,84 @@ def build_pool_100():
             and "noise" not in f
             and "shift" not in f
             and "loud"  not in f
-        ])
-        if not files:
-            files = sorted([
-                f for f in os.listdir(folder_path)
-                if f.endswith(".wav")
-                and f.lower().startswith(pref)
-                and not f.startswith("aug_")
-                and not f.startswith("SYNTH_")
-                and "noise" not in f
-                and "shift" not in f
-            ])
-        if not files:
+            and f not in ALL_EXCLUDE
+        ]
+
+        if len(files_tier1) >= target_n:
+            # Cukup file tier 1 → pakai semua dari tier1
+            picked = random.sample(files_tier1, target_n)
+            return [(cls_label, os.path.join(folder_path, f)) for f in picked]
+
+        # Jika tier1 tidak cukup: tampilkan peringatan tapi tetap pakai semua tier1
+        # lalu tambahkan dari tier1 dengan repeat (jika sangat sedikit)
+        if files_tier1:
+            # Repeat dari files yang ada jika tidak cukup
+            picked = files_tier1[:]
+            while len(picked) < target_n:
+                picked += files_tier1
+            picked = random.sample(picked[:target_n + len(files_tier1)], target_n)
+            return [(cls_label, os.path.join(folder_path, f)) for f in picked[:target_n]]
+
+        # TIER 2: fallback ke _seg01.wav tanpa audit filter (jika tier1 kosong)
+        files_tier2 = [
+            f for f in os.listdir(folder_path)
+            if f.endswith("_seg01.wav")
+            and f.lower().startswith(pref)
+            and not f.startswith("aug_")
+            and not f.startswith("SYNTH_")
+            and f not in HARDCODED_EXCLUDE
+        ]
+        if files_tier2:
+            if len(files_tier2) >= target_n:
+                picked = random.sample(files_tier2, target_n)
+            else:
+                picked = (files_tier2 * (target_n // len(files_tier2) + 1))[:target_n]
+            return [(cls_label, os.path.join(folder_path, f)) for f in picked]
+
+        # TIER 3: fallback ke semua .wav
+        files_tier3 = [
+            f for f in os.listdir(folder_path)
+            if f.endswith(".wav")
+            and f.lower().startswith(pref)
+            and not f.startswith("aug_")
+            and not f.startswith("SYNTH_")
+            and f not in HARDCODED_EXCLUDE
+        ]
+        if not files_tier3:
             return []
+        if len(files_tier3) >= target_n:
+            picked = random.sample(files_tier3, target_n)
+        else:
+            picked = (files_tier3 * (target_n // len(files_tier3) + 1))[:target_n]
+        return [(cls_label, os.path.join(folder_path, f)) for f in picked]
 
-        base = [(cls_label, os.path.join(folder_path, f)) for f in files]
-        out  = []
-        while len(out) < target_n:
-            out.extend(base)
-        return out[:target_n]
+    n_amb = target_total // 3
+    n_dam = target_total // 3
+    n_pol = target_total - (n_amb + n_dam)
 
-    pool  = get_seg_files("AMBULANCE", "AMBULANCE", 33)
-    pool += get_seg_files("FIRETRUCK", "DAMKAR",    33)
-    pool += get_seg_files("POLICE",    "POLISI",    34)
+    # Tampilkan info dataset sebelum disampling
+    bl = audit_bl
+    for folder, pref_key, n_target, lbl in [
+        ("AMBULANCE", "ambulance_", n_amb, "Ambulance"),
+        ("FIRETRUCK",  "fire_",      n_dam, "Damkar"),
+        ("POLICE",     "police_",    n_pol, "Polisi"),
+    ]:
+        folder_path = os.path.join(ROOT, folder)
+        if os.path.exists(folder_path):
+            all_seg = [f for f in os.listdir(folder_path)
+                       if f.endswith("_seg01.wav") and f.lower().startswith(pref_key)
+                       and not f.startswith("aug_") and not f.startswith("SYNTH_")]
+            n_safe = len([f for f in all_seg if f not in bl.get(folder, set())])
+            print(f"  [{lbl}] {n_safe} file aman dari {len(all_seg)} total _seg01.wav (dibutuhkan {n_target})")
+
+    pool  = get_seg_files("AMBULANCE", "AMBULANCE", n_amb)
+    pool += get_seg_files("FIRETRUCK", "DAMKAR",    n_dam)
+    pool += get_seg_files("POLICE",    "POLISI",    n_pol)
 
     # Acak MURNI setiap run (berbeda tiap kali) agar pengujian terasa nyata
     random.shuffle(pool)
     return pool
+
 
 
 def play_sound(cls_name, filepath, loops=4):
@@ -147,221 +272,307 @@ def play_sound(cls_name, filepath, loops=4):
 
 
 def menu_ujian_100():
-    """Menu [4]: Benchmark 100 Sirine dengan Statistik Lengkap per Kelas."""
+    """Menu [4]: Benchmark 100 Sirine dengan Statistik Lengkap, Ekspor Excel & Grafik Resmi Skripsi."""
     KELAS = ["AMBULANCE", "DAMKAR", "POLISI"]
+    
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("="*72)
+    print("  BENCHMARK PENGUJIAN HARDWARE SIRENMASTER (UJIAN SKRIPSI)")
+    print("  Dilengkapi Rekam Hasil Manual, Ekspor Excel (.xlsx) & Grafik (.png)")
+    print("="*72)
+    print("  Pilih jumlah suara yang ingin diuji:")
+    print("   [1] 100 Suara (Standar Pengujian Skripsi Penuh)")
+    print("   [2] 50 Suara  (Pengujian Sedang)")
+    print("   [3] 20 Suara  (Uji Cepat / Cek Alat)")
+    print("   [4] Kustom (Tentukan sendiri jumlah suara)")
+    print("   [0] Batal / Kembali ke Menu Utama")
+    print("="*72)
+
     try:
-        pool = build_pool_100()
+        pilih_jml = input("  Masukkan pilihan [1-4 atau tekan ENTER untuk 100 suara]: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        print("\n\n  [!] Dibatalkan. Kembali ke menu utama.")
+        return
+    if pilih_jml == "0":
+        return
+    elif pilih_jml == "2":
+        target_jml = 50
+    elif pilih_jml == "3":
+        target_jml = 20
+    elif pilih_jml == "4":
+        try:
+            target_jml = int(input("  Masukkan jumlah suara: ").strip())
+            if target_jml <= 0:
+                target_jml = 100
+        except (ValueError, EOFError, KeyboardInterrupt):
+            target_jml = 100
+    else:
+        target_jml = 100
+
+    try:
+        pilih_loop = input("  Jumlah putaran suara per tes [Tekan ENTER untuk 4x putar (~16s), atau ketik 5]: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        pilih_loop = ""
+    loops_per_sample = 5 if pilih_loop == "5" else 4
+
+    try:
+        pool = build_pool_100(target_jml)
     except KeyboardInterrupt:
         print("\n\n[!] Dibatalkan. Kembali ke menu utama.")
         return
-    pool_backup = list(pool)  # simpan jika ingin resume
 
     if not pool:
-        print("\n[!] POOL 100 KOSONG.")
+        print("\n[!] POOL SUARA KOSONG.")
         print("    Pastikan folder AMBULANCE, FIRETRUCK, POLICE berisi file .wav.")
-        input("\n[Tekan ENTER untuk kembali ke menu utama...]")
+        try:
+            input("\n[Tekan ENTER untuk kembali ke menu utama...]")
+        except (EOFError, KeyboardInterrupt):
+            pass
         return
 
-    os.system('cls')
-    print("="*70)
-    print("  BENCHMARK 100 SIRINE  --  DATA RESMI SKRIPSI")
-    print("="*70)
-    print(f"  Total sampel : {len(pool)} suara")
-    print("  Distribusi   : 33 Ambulance | 33 Damkar | 34 Polisi")
-    print("  Urutan       : ACAK setiap run (berbeda tiap kali dijalankan)")
-    print("-"*70)
-    print("  CARA KERJA:")
-    print("  1. Sistem memutar suara 2x -> Dekatkan ESP32 ke speaker.")
-    print("  2. Ketik kelas yang tampil di LCD alat Anda.")
-    print("  3. Di akhir: Confusion Matrix + Akurasi Per Kelas + File Laporan.")
-    print("="*70)
-    input("\n[Tekan ENTER untuk mulai Ronde 1 dari 100...]")
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("="*72)
+    print(f"  MEMULAI PENGUJIAN {len(pool)} SUARA SIRINE SECARA MANUAL")
+    print("="*72)
 
+    # Info dataset yang digunakan
+    from collections import Counter as _Ctr
+    dist_pool = _Ctr(kls for kls, _ in pool)
+    unique_pool = _Ctr(os.path.basename(fpath) for _, fpath in pool)
+    total_unique = len(unique_pool)
+    bl = get_audit_blacklist()
+    bl_total = sum(len(v) for v in bl.values())
+    print(f"  Total Sampel : {len(pool)} suara ({total_unique} file unik, {len(pool)-total_unique} file diulang)")
+    print(f"  Distribusi   : Ambulance={dist_pool.get('AMBULANCE',0)} | Damkar={dist_pool.get('DAMKAR',0)} | Polisi={dist_pool.get('POLISI',0)}")
+    print(f"  Filter Audit : {bl_total} file mislabeled/salah-kamar telah DIKECUALIKAN dari pool")
+    print(f"  Pemutaran    : {loops_per_sample}x Putaran (~{loops_per_sample*4} Detik per suara)")
+    print(f"  Urutan       : Diacak secara real-time")
+    # Peringatan jika ada kelas dengan file sedikit (harus diulang)
+    for kls_label, folder in [("AMBULANCE","AMBULANCE"), ("DAMKAR","FIRETRUCK"), ("POLISI","POLICE")]:
+        pool_kls = [os.path.basename(fpath) for kl, fpath in pool if kl == kls_label]
+        unique_kls = len(set(pool_kls))
+        total_kls = len(pool_kls)
+        if unique_kls < total_kls:
+            print(f"  [!] PERHATIAN: {kls_label} hanya {unique_kls} file aman → {total_kls - unique_kls} file diulang (dataset terbatas)")
+    print("-" * 72)
+    print("  PANDUAN PENGUJIAN:")
+    print(f"  1. Suara diputar {loops_per_sample}x (~{loops_per_sample*4} detik) agar alat punya waktu mengunci.")
+    print("  2. Dekatkan mikrofon alat ESP32 SirenMaster ke speaker komputer.")
+    print("  3. Perhatikan apa yang tertampil di layar LCD alat Anda.")
+    print("  4. Masukkan input manual sesuai tampilan LCD:")
+    print("     [a] = Tampil AMBULANCE")
+    print("     [d] = Tampil DAMKAR")
+    print("     [p] = Tampil POLISI")
+    print("     [0] = DIAM / Tidak Bereaksi (System Aman)")
 
-    # ── Struktur data: confusion + mode kegagalan ──────────────────
-    # Tuple results_log: (ronde, kelas_asli, tebakan_lcd, mode)
-    # mode: BENAR | SALAH_DETEKSI | TIDAK_TERDETEKSI | LAMBAT | SKIP | FILE_MISSING
-    confusion   = {k: collections.Counter() for k in KELAS + ["TDK_DETEKSI"]}
-    mode_count  = {k: collections.Counter() for k in KELAS}
+    print("     [l] = LAMBAT (>10 detik tapi benar)")
+    print("     [x] = SKIP ronde ini")
+    print("="*72)
+    try:
+        input(f"\n[Tekan ENTER untuk mulai Ronde 1 dari {len(pool)}...]")
+    except (EOFError, KeyboardInterrupt):
+        print("\n\n  [!] Dibatalkan sebelum pengujian dimulai.")
+        return
+
+    confusion = {k: collections.Counter() for k in KELAS + ["TDK_DETEKSI"]}
+    mode_count = {k: collections.Counter() for k in KELAS}
     results_log = []
-    retrain_list = []  # [(kelas_asli, fpath, mode, alasan)] — file yg perlu dilatih ulang
-    start_time  = time.time()
+    retrain_list = []
+    start_time = time.time()
 
     try:
         for idx, (kelas_asli, fpath) in enumerate(pool, 1):
-            os.system('cls')
-            print("="*70)
-            print(f"  RONDE {idx:>3} / {len(pool)}")
-            print(f"  Kelas Asli : {kelas_asli}")
-            print(f"  File       : {os.path.basename(fpath)}")
-            print("="*70)
-            print("  Memutar 2x... Dekatkan alat ke speaker!\n")
+            os.system('cls' if os.name == 'nt' else 'clear')
+            fname = os.path.basename(fpath)
+            
+            # Hitung skor berjalan sejauh ini
+            done_so_far = len(results_log)
+            benar_so_far = sum(1 for r in results_log if r.get("mode") in ("BENAR", "LAMBAT"))
+            acc_now = (benar_so_far / done_so_far * 100) if done_so_far > 0 else 0
+
+            print("="*72)
+            print(f"  RONDE {idx:03d} / {len(pool):03d}  |  File: {fname[:40]}")
+            print(f"  SKOR BERJALAN: {benar_so_far}/{done_so_far} ({acc_now:.1f}%) | Sisa: {len(pool) - idx + 1} Ronde")
+            print("="*72)
+            print(f"  [*] Memutar suara {loops_per_sample}x... (Dekatkan mic ESP32 ke speaker!)")
 
             file_ok = os.path.exists(fpath)
             if not file_ok:
-                print(f"    [!] File tidak ditemukan — Ronde {idx} dilewati otomatis.")
-                results_log.append((idx, kelas_asli, "-", "FILE_MISSING"))  # FIX: mode di posisi ke-4
-                time.sleep(0.4)
-                if idx < len(pool):
-                    input(f"  [ENTER untuk Ronde {idx+1}...]")
+                print(f"  [!] File audio tidak ditemukan — Ronde {idx} dilewati.")
+                results_log.append({
+                    "ronde": idx, "waktu": time.strftime("%H:%M:%S"), "file": fname,
+                    "kelas_asli": kelas_asli, "tebakan": "-", "mode": "FILE_MISSING",
+                    "skor": 0, "keterangan": "File tidak ditemukan di disk"
+                })
+                time.sleep(0.5)
                 continue
 
-            # ── Putar audio 3x ──
-            for lp in range(1, 4):
-                print(f"    -> Putaran {lp}/3...")
+            # Putar audio 4x atau 5x sesuai pilihan
+            for lp in range(1, loops_per_sample + 1):
+                print(f"      -> Putaran {lp}/{loops_per_sample}... (Dekatkan mic ESP32 ke speaker)", end="\r", flush=True)
                 winsound.PlaySound(fpath, winsound.SND_FILENAME)
                 time.sleep(0.1)
+            print(f"      -> Selesai diputar {loops_per_sample}x (~{loops_per_sample*4} Detik). Perhatikan LCD alat Anda!      ")
 
-            # ── Tampilkan prompt dengan konteks kelas yang diuji ──
-            cls_icon = {"AMBULANCE": "[A]", "DAMKAR": "[D]", "POLISI": "[P]"}
-            print("\n" + "="*70)
-            print(f"  Yang diputar   : {kelas_asli}")
-            print(f"  Yang HARUS muncul di LCD: {kelas_asli}  {cls_icon.get(kelas_asli,'')}")
-            print("-"*70)
-            print("  LCD menampilkan APA? Ketik 1 huruf:")
-            print()
-            print("  [a]  AMBULANCE muncul")
-            print("  [d]  DAMKAR    muncul")
-            print("  [p]  POLISI    muncul")
-            print()
-            print("  [0]  DIAM -- LCD tidak bereaksi (masih SYSTEM AMAN)")
-            print("  [l]  LAMBAT -- Benar tapi lama terkunci (> 10 detik)")
-            print("  [x]  SKIP ronde ini")
-            print("="*70)
+            cls_icon = {"AMBULANCE": "🚑 AMBULANCE", "DAMKAR": "🚒 DAMKAR", "POLISI": "🚓 POLISI"}
+            print("-" * 72)
+            print(f"  TARGET SEBENARNYA:  {cls_icon.get(kelas_asli, kelas_asli)}")
+            print("-" * 72)
+            print("  APA YANG MUNCUL DI LAYAR LCD ALAT ESP32 ANDA?")
+            print("   [a] AMBULANCE")
+            print("   [d] DAMKAR")
+            print("   [p] POLISI")
+            print("   [0] DIAM / TIDAK MERESPON (Masih SYSTEM AMAN)")
+            print("   [l] LAMBAT (>10 detik tapi akhirnya benar)")
+            print("   [x] SKIP ronde ini")
+            print("=" * 72)
 
             while True:
-                ans = input("  Ketik (a/d/p/0/l/x): ").strip().lower()
+                ans = input("  Ketik pilihan Anda (a / d / p / 0 / l / x): ").strip().lower()
                 if ans in ('a', 'd', 'p', '0', 'l', 'x'):
                     break
-                print("  [!] Tidak valid. Ketik a, d, p, 0, l, atau x.")
+                print("  [!] Input tidak valid! Harap ketik a, d, p, 0, l, atau x.")
 
             map_lcd = {'a': 'AMBULANCE', 'd': 'DAMKAR', 'p': 'POLISI'}
+            waktu_uji = time.strftime("%H:%M:%S")
 
             if ans == 'x':
-                print(f"  => Ronde {idx} dilewati.")
-                results_log.append((idx, kelas_asli, "-", "SKIP"))
-                time.sleep(0.2)
-                if idx < len(pool):
-                    input(f"  [ENTER untuk Ronde {idx+1}...]")
-                continue
+                tebakan = "-"
+                mode = "SKIP"
+                skor = 0
+                ket = "Dilewati oleh pengguna"
+                print("\n  [-] Ronde ini dilewati (SKIP).")
 
             elif ans == '0':
                 tebakan = "TDK_DETEKSI"
-                mode    = "TIDAK_TERDETEKSI"
+                mode = "TIDAK_TERDETEKSI"
+                skor = 0
+                ket = "LCD diam / tidak merespon (Missed)"
                 confusion[kelas_asli]["TDK_DETEKSI"] += 1
                 mode_count[kelas_asli]["TIDAK_TERDETEKSI"] += 1
                 retrain_list.append((kelas_asli, fpath, "TIDAK TERDETEKSI", "Layar diam / Sistem Aman"))
-                print()
-                print("  " + "~"*66)
-                print(f"  [-] TIDAK TERDETEKSI! -- {kelas_asli} terlewat")
-                print(f"       Seharusnya : {kelas_asli}")
-                print(f"       LCD tampil : SYSTEM AMAN (tidak bereaksi)")
-                print(f"  [*] FILE INI DITANDAI untuk dilatih ulang ({len(retrain_list)} file sejauh ini)")
-                print("  " + "~"*66)
+
+                print("\n" + "~"*72)
+                print("  STATUS: [-] TIDAK TERDETEKSI / MISSED (Skor 0)")
+                print(f"  Suara Asli : {kelas_asli}")
+                print("  LCD Tampil : SYSTEM AMAN / DIAM (Tidak bereaksi)")
+                print("  -> Data tersimpan ke Excel sebagai TIDAK TERDETEKSI.")
+                print("~"*72)
 
             elif ans == 'l':
                 tebakan = kelas_asli
-                mode    = "LAMBAT"
+                mode = "LAMBAT"
+                skor = 1
+                ket = "Terdeteksi tepat namun butuh waktu >10 detik"
                 confusion[kelas_asli][kelas_asli] += 1
                 mode_count[kelas_asli]["LAMBAT"] += 1
-                print()
-                print(f"  [ok-lambat] {kelas_asli} terdeteksi tapi LAMBAT (dihitung benar)")
+
+                print("\n" + "="*72)
+                print("  STATUS: [~] BENAR TAPI LAMBAT (Skor 1)")
+                print(f"  Suara Asli : {kelas_asli}")
+                print(f"  LCD Tampil : {kelas_asli} (Terkunci >10 detik)")
+                print("  -> Dihitung BENAR, tercatat di Excel sebagai LAMBAT.")
+                print("="*72)
 
             else:
-                # ans adalah a / d / p
                 tebakan = map_lcd[ans]
                 if tebakan == kelas_asli:
                     mode = "BENAR"
+                    skor = 1
+                    ket = "Tepat sesuai suara asli"
                     confusion[kelas_asli][kelas_asli] += 1
                     mode_count[kelas_asli]["BENAR"] += 1
-                    print()
-                    print("  " + "-"*66)
-                    print(f"  [v] BENAR -- LCD tampil {tebakan} (tepat!)")
-                    print("  " + "-"*66)
+
+                    print("\n" + "="*72)
+                    print("  STATUS: [✓] BENAR! (Skor 1)")
+                    print(f"  Suara Asli : {kelas_asli}")
+                    print(f"  LCD Tampil : {tebakan} (Akurat 100%)")
+                    print("  -> Hebat! Tercatat ke Excel sebagai BENAR.")
+                    print("="*72)
                 else:
                     mode = "SALAH_DETEKSI"
+                    skor = 0
+                    ket = f"Miskalsifikasi: menebak {tebakan}"
                     confusion[kelas_asli][tebakan] += 1
                     mode_count[kelas_asli]["SALAH_DETEKSI"] += 1
                     retrain_list.append((kelas_asli, fpath, "SALAH DETEKSI", f"Malah menebak {tebakan}"))
-                    print()
-                    print("  " + "!"*66)
-                    print(f"  [X] SALAH DETEKSI (FATAL)!")
-                    print(f"       Seharusnya : {kelas_asli}")
-                    print(f"       LCD tampil : {tebakan}  <-- SALAH!")
-                    print(f"  [*] FILE INI DITANDAI untuk dilatih ulang ({len(retrain_list)} file sejauh ini)")
-                    print("  " + "!"*66)
 
-            # Progress kilat setiap 10 ronde
-            # BUG FIX: hitung done_so_far hanya dari kelas valid (bukan TDK_DETEKSI)
-            done_so_far  = sum(mode_count[k]["BENAR"] + mode_count[k]["SALAH_DETEKSI"]
-                               + mode_count[k]["TIDAK_TERDETEKSI"] + mode_count[k]["LAMBAT"]
-                               for k in KELAS)
-            benar_so_far = sum(confusion[k][k] for k in KELAS)
-            pct          = (benar_so_far / done_so_far * 100) if done_so_far else 0
-            if idx % 10 == 0:
-                elapsed = time.time() - start_time
-                eta     = (elapsed / idx) * (len(pool) - idx) if idx < len(pool) else 0
-                print(f"\n  -- [{idx}/{len(pool)}] Skor: {benar_so_far}/{done_so_far} = {pct:.1f}% | ETA ~{eta/60:.1f} mnt --")
+                    print("\n" + "!"*72)
+                    print("  STATUS: [✗] SALAH DETEKSI (FATAL)! (Skor 0)")
+                    print(f"  Suara Asli : {kelas_asli}")
+                    print(f"  LCD Tampil : {tebakan}  <--- SALAH KELAS!")
+                    print("  -> Tercatat ke Excel dan ditandai untuk evaluasi.")
+                    print("!"*72)
 
-            results_log.append((idx, kelas_asli, tebakan, mode))
-            time.sleep(0.2)
+            results_log.append({
+                "ronde": idx,
+                "waktu": waktu_uji,
+                "file": fname,
+                "kelas_asli": kelas_asli,
+                "tebakan": tebakan,
+                "mode": mode,
+                "skor": skor,
+                "keterangan": ket
+            })
+
+            # Tampilkan statistik sementara setelah tiap input
+            total_tested = len(results_log)
+            total_c = sum(1 for r in results_log if r.get("mode") in ("BENAR", "LAMBAT"))
+            acc_c = (total_c / total_tested * 100) if total_tested > 0 else 0
+            print(f"  Progress: Ronde {idx}/{len(pool)} | Akurasi Sementara: {total_c}/{total_tested} ({acc_c:.1f}%)")
+
             if idx < len(pool):
-                input(f"  [ENTER untuk Ronde {idx+1}...]")
+                print("-" * 72)
+                lanjut_ronde = input("  [Tekan ENTER untuk lanjut ke ronde berikutnya, atau ketik 'q' untuk selesai]: ").strip().lower()
+                if lanjut_ronde == 'q':
+                    print("\n  [!] Pengujian diakhiri oleh pengguna.")
+                    break
 
     except KeyboardInterrupt:
-        print("\n\n" + "="*70)
-        print("  [!] Pengujian dihentikan manual (Ctrl+C).")
-        print(f"  Ronde yang sudah selesai: {len(results_log)}")
-        lanjut = input("  Tetap tampilkan laporan parsial? (y/n): ").strip().lower()
-        if lanjut != 'y':
-            print("  Laporan dibatalkan. Kembali ke menu utama.")
-            return
+        print("\n\n" + "="*72)
+        print("  [!] Pengujian dihentikan sementara (Ctrl+C).")
+        print(f"  Ronde yang telah berhasil diselesaikan: {len(results_log)} suara.")
+        print("  Seluruh data yang terkumpul TETAP AKAN DIEKSPOR ke Excel & Grafik!")
+        print("="*72)
 
     # ─────────────────────────────────────────────
-    #  LAPORAN AKHIR
+    #  LAPORAN AKHIR & EKSPOR EXCEL + GRAFIK
     # ─────────────────────────────────────────────
-    os.system('cls')
+    os.system('cls' if os.name == 'nt' else 'clear')
     elapsed_total = time.time() - start_time
     total_valid   = sum(sum(c.values()) for c in confusion.values())
     total_benar   = sum(confusion[k][k] for k in KELAS)
     acc_total     = (total_benar / total_valid * 100) if total_valid else 0
-    file_missing  = sum(1 for _,_,_,m in results_log if m == "FILE_MISSING")
-    skipped       = sum(1 for _,_,_,m in results_log if m == "SKIP")
+    file_missing  = sum(1 for r in results_log if r.get("mode") == "FILE_MISSING")
+    skipped       = sum(1 for r in results_log if r.get("mode") == "SKIP")
     total_diam    = sum(mode_count[k]["TIDAK_TERDETEKSI"] for k in KELAS)
     total_salah_k = sum(mode_count[k]["SALAH_DETEKSI"]    for k in KELAS)
     total_lambat  = sum(mode_count[k]["LAMBAT"]           for k in KELAS)
 
-    W = 70
+    W = 72
     print()
     print("=" * W)
-    print("  LAPORAN STATISTIK LENGKAP".center(W))
-    print("  BENCHMARK 100 SIRINE -- SIRENMASTER".center(W))
+    print("  LAPORAN STATISTIK LENGKAP PENGUJIAN HARDWARE SIRENMASTER".center(W))
     print("=" * W)
     print(f"  Tanggal          : {time.strftime('%d %B %Y, %H:%M:%S')}")
     print(f"  Durasi Pengujian : {int(elapsed_total//60)} menit {int(elapsed_total%60)} detik")
     print("-" * W)
-    print(f"  Total Ronde      : 100")
-    print(f"  Ronde Diuji      : {total_valid}")
-    print(f"  Skip / Missing   : {skipped} skip + {file_missing} file hilang")
+    print(f"  Total Sampel     : {len(results_log)} suara diuji")
+    print(f"  [✓] BENAR        : {total_benar} suara ({acc_total:.1f}%)")
+    print(f"  [✗] SALAH KELAS  : {total_salah_k} suara (Fatal misklasifikasi)")
+    print(f"  [-] TIDAK RESPON : {total_diam} suara (Missed / System Aman)")
+    print(f"  [~] LAMBAT       : {total_lambat} suara (Benar tapi >10 detik)")
     print()
-    print(f"  [v] BENAR            : {total_benar}")
-    print(f"  [X] SALAH DETEKSI    : {total_salah_k}  (Model menebak kelas lain - FATAL)")
-    print(f"  [-] TIDAK TERDETEKSI : {total_diam}  (Layar diam / Missed)")
-    print(f"  [~] LAMBAT           : {total_lambat}  (Benar tapi butuh waktu >10 detik)")
-    print()
-    bar_len = 40
+    bar_len = 35
     filled  = int(bar_len * acc_total / 100)
     bar     = "#" * filled + "-" * (bar_len - filled)
-    print(f"  AKURASI TOTAL : [{bar}] {acc_total:.2f}%")
-
-    # ── Akurasi + Mode Kegagalan Per Kelas ──
-    print()
+    print(f"  AKURASI TOTAL    : [{bar}] {acc_total:.2f}%")
     print("-" * W)
-    print("  PERFORMA PER KELAS:")
-    print()
-    col_kelas = "KELAS"
-    print(f"  {col_kelas:<14} | {'BENAR':>6} | {'SALAH_D':>7} | {'TDK_DET':>7} | {'LAMBAT':>6} | {'TOTAL':>6} | {'AKURASI':>8}")
-    print(f"  {'-'*14}-+-{'-'*6}-+-{'-'*7}-+-{'-'*7}-+-{'-'*6}-+-{'-'*6}-+-{'-'*8}")
+
+    # Tabel Performa Per Kelas di Terminal
+    print("  PERFORMA DETEKSI PER KELAS:")
+    print(f"  {'KELAS':<14} | {'BENAR':>6} | {'SALAH':>6} | {'DIAM':>6} | {'LAMBAT':>6} | {'TOTAL':>6} | {'AKURASI':>8}")
+    print(f"  {'-'*14}-+-{'-'*6}-+-{'-'*6}-+-{'-'*6}-+-{'-'*6}-+-{'-'*6}-+-{'-'*8}")
     for k in KELAS:
         tot_k    = sum(confusion[k].values())
         benar_k  = confusion[k][k]
@@ -369,62 +580,10 @@ def menu_ujian_100():
         sk       = mode_count[k]["SALAH_DETEKSI"]
         diam_k   = mode_count[k]["TIDAK_TERDETEKSI"]
         lambat_k = mode_count[k]["LAMBAT"]
-        flag     = " <-- PERLU PERBAIKAN" if acc_k < 80 else ("⚠" if acc_k < 90 else "")
-        print(f"  {k:<14} | {benar_k:>6} | {sk:>7} | {diam_k:>7} | {lambat_k:>6} | {tot_k:>6} | {acc_k:>7.1f}% {flag}")
+        status_k = " (✓ LULUS)" if acc_k >= 90 else " (⚠ PERLU RETRAIN)"
+        print(f"  {k:<14} | {benar_k:>6} | {sk:>6} | {diam_k:>6} | {lambat_k:>6} | {tot_k:>6} | {acc_k:>7.1f}%{status_k}")
 
-    # ── Confusion Matrix ──
-    print()
-    print("-" * W)
-    print("  CONFUSION MATRIX  (Baris=Kelas Asli | Kolom=Tebakan LCD)")
-    print("  Nilai diagonal (*) = benar. Di luar diagonal = salah deteksi.")
-    print()
-    col0   = "Asli / LCD"
-    header = f"  {col0:<14} | {'AMB':>6} | {'DAM':>6} | {'POL':>6} | {'TDK_DET':>7}"
-    print(header)
-    print("  " + "-" * (len(header) - 2))
-    for k in KELAS:
-        r_amb  = confusion[k]["AMBULANCE"]
-        r_dam  = confusion[k]["DAMKAR"]
-        r_pol  = confusion[k]["POLISI"]
-        r_diam = confusion[k]["TDK_DETEKSI"]
-        vals   = [
-            f"{r_amb}*" if k == "AMBULANCE" else str(r_amb),
-            f"{r_dam}*" if k == "DAMKAR"    else str(r_dam),
-            f"{r_pol}*" if k == "POLISI"    else str(r_pol),
-            str(r_diam),
-        ]
-        print(f"  {k:<14} | {vals[0]:>6} | {vals[1]:>6} | {vals[2]:>6} | {vals[3]:>6}")
-
-    # ── Analisis Kelemahan Otomatis ──
-    print()
-    print("-" * W)
-    print("  ANALISIS KELEMAHAN OTOMATIS:")
-    any_issue = False
-    for k in KELAS:
-        tot_k  = sum(confusion[k].values())
-        acc_k  = (confusion[k][k] / tot_k * 100) if tot_k else 0
-        diam_k = mode_count[k]["TIDAK_TERDETEKSI"]
-        sk_k   = mode_count[k]["SALAH_DETEKSI"]
-
-        issues = []
-        if diam_k > 0:
-            issues.append(f"TDK DETEKSI {diam_k}x")
-        if sk_k > 0:
-            top = sorted([(c, n) for c, n in confusion[k].items()
-                          if c != k and c != "TDK_DETEKSI" and n > 0], key=lambda x: -x[1])
-            if top:
-                issues.append(f"SALAH DETEKSI {sk_k}x (sering dikira '{top[0][0]}')")
-        if mode_count[k]["LAMBAT"] > 0:
-            issues.append(f"LAMBAT {mode_count[k]['LAMBAT']}x")
-
-        if issues:
-            any_issue = True
-            print(f"  {k:<12} [{acc_k:.1f}%]: {' | '.join(issues)}")
-
-    if not any_issue:
-        print("  Tidak ada masalah signifikan. Semua kelas performa baik!")
-
-    # ── Simpan laporan TXT ──
+    # Simpan laporan text & butuh_retrain
     log_path = os.path.join(ROOT, "hasil_benchmark_100.txt")
     try:
         with open(log_path, "w", encoding="utf-8") as f:
@@ -438,70 +597,78 @@ def menu_ujian_100():
             f.write(f"Diam            : {total_diam}\n")
             f.write(f"Lambat          : {total_lambat}\n\n")
             f.write("PERFORMA PER KELAS:\n")
-            f.write(f"  {'KELAS':<14} | {'BENAR':>6} | {'SALAH_D':>7} | {'TDK_DET':>7} | {'LAMBAT':>6} | {'AKURASI':>8}\n")
             for k in KELAS:
-                tot_k  = sum(confusion[k].values())
-                bk     = confusion[k][k]
-                acc_k  = (bk / tot_k * 100) if tot_k else 0
-                sk     = mode_count[k]["SALAH_DETEKSI"]
-                dk     = mode_count[k]["TIDAK_TERDETEKSI"]
-                lk     = mode_count[k]["LAMBAT"]
-                f.write(f"  {k:<14} | {bk:>6} | {sk:>7} | {dk:>7} | {lk:>6} | {acc_k:>7.1f}%\n")
-            f.write("\nCONFUSION MATRIX:\n")
-            f.write(f"  {'Asli/LCD':<14} | {'AMB':>6} | {'DAM':>6} | {'POL':>6} | {'TDK_DET':>7}\n")
-            for k in KELAS:
-                f.write(f"  {k:<14} | {confusion[k]['AMBULANCE']:>6} | {confusion[k]['DAMKAR']:>6}"
-                        f" | {confusion[k]['POLISI']:>6} | {confusion[k]['TDK_DETEKSI']:>7}\n")
-            f.write("\nDETAIL PER RONDE:\n")
-            f.write(f"  {'No':>4} | {'Kelas Asli':<12} | {'LCD Tampil':<12} | MODE\n")
-            f.write("  " + "-" * 52 + "\n")
-            for r_num, k_asli, tebakan, mode_r in results_log:
-                f.write(f"  {r_num:>4} | {k_asli:<12} | {tebakan:<12} | {mode_r}\n")
-        print(f"\n  Laporan disimpan: {log_path}")
+                tot_k = sum(confusion[k].values())
+                bk = confusion[k][k]
+                acc_k = (bk / tot_k * 100) if tot_k else 0
+                f.write(f"  {k:<14} : {bk}/{tot_k} ({acc_k:.1f}%)\n")
     except Exception as e:
-        print(f"\n  [!] Gagal simpan laporan: {e}")
+        print(f"  [!] Gagal simpan log txt: {e}")
 
-    # ── Tampilkan & Simpan file yang butuh retrain ──
-    print()
+    # ── KONFIRMASI SIMPAN KE FOLDER PENGUJIAN (Pengujian_1, Pengujian_2, ...) ──
+    next_num, next_folder = get_next_pengujian_name()
+
+    print("\n" + "=" * W)
+    print("  SIMPAN HASIL PENGUJIAN KE ARSIP SKRIPSI?".center(W))
     print("=" * W)
+    print(f"  Target Folder : [ {next_folder} ]")
+    print(f"  Pilihan Tindakan:")
+    print(f"   [1] YA, Simpan ke folder '{next_folder}' (Lengkap: Excel Dashboard + 4 Grafik + Analisis)")
+    print(f"   [2] YA, Simpan dengan nama folder kustom")
+    print(f"   [0] TIDAK, Jangan simpan sesi ini ke arsip")
+    print("=" * W)
+
+    try:
+        pilih_save = input(f"  Pilihan Anda [1=Simpan {next_folder} / 2=Kustom / 0=Jangan Simpan]: ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        print("\n\n  [!] Input tidak tersedia. Data tidak disimpan — kembali ke menu utama.")
+        return
+
+    if pilih_save == "0":
+        print("\n  [-] Pengujian tidak disimpan ke arsip.")
+        try:
+            input("\n[Tekan ENTER untuk kembali ke menu utama...]")
+        except (EOFError, KeyboardInterrupt):
+            pass
+        return
+    elif pilih_save == "2":
+        try:
+            kustom_nama = input("  Masukkan nama folder (contoh: Pengujian_1, Uji_Pagi, dll): ").strip()
+        except (EOFError, KeyboardInterrupt):
+            kustom_nama = ""
+        target_folder = kustom_nama if kustom_nama else next_folder
+    else:
+        target_folder = next_folder
+
+    print("\n" + "=" * W)
+    print(f"  MENYIMPAN DATA & MEMBUAT DASHBOARD KE FOLDER: {target_folder}...")
+    print("=" * W)
+
+    export_res = None
+    try:
+        export_res = export_benchmark_to_excel_and_charts(
+            results_log, confusion, mode_count, elapsed_total, folder_name=target_folder
+        )
+        print(f"  [✓] Folder Pengujian Berhasil Dibuat: {export_res['session_dir']}")
+        print(f"  [✓] File Excel Dashboard Data Analysis: {os.path.basename(export_res['excel_path'])}")
+        print(f"  [✓] Ringkasan Naratif: {os.path.basename(export_res['txt_path'])}")
+        print("  [✓] 4 Grafik Skripsi 300 DPI Berhasil Dibuat di subfolder 'grafik/':")
+        for g_name, g_path in export_res['chart_paths'].items():
+            print(f"      • {os.path.basename(g_path)}")
+    except Exception as e:
+        print(f"  [!] Gagal ekspor Excel/Grafik: {e}")
+
+    # Simpan file yang butuh retrain jika ada
     if retrain_list:
-        retrain_list_sorted = sorted(retrain_list, key=lambda x: (x[0], x[2]))
-
-        # ── Tampilkan di terminal ──
-        print(f"  FILE BERMASALAH (BUTUH LATIH ULANG) — Total: {len(retrain_list)} file")
-        print("=" * W)
-
-        # Kelompokkan per kelas
-        for kls in ["AMBULANCE", "DAMKAR", "POLISI"]:
-            grup = [(fp, md, al) for (ka, fp, md, al) in retrain_list_sorted if ka == kls]
-            if not grup:
-                continue
-            icon = {"AMBULANCE": "[A]", "DAMKAR": "[D]", "POLISI": "[P]"}.get(kls, "")
-            print(f"\n  {icon} {kls}  ({len(grup)} file):")
-            print("  " + "-" * 60)
-            for fpath, mode, alasan in grup:
-                fname = os.path.basename(fpath)
-                tag   = "TIDAK TERDETEKSI" if mode == "TIDAK TERDETEKSI" else f"SALAH DETEKSI ({alasan})"
-                print(f"    • {fname}")
-                print(f"      Masalah : {tag}")
-
-        print()
-        print("  Saran tindakan:")
-        print("  1. Upload file-file di atas ke Edge Impulse (kelas masing-masing)")
-        print("  2. Retrain model → Deploy ulang ke ESP32")
-        print("  3. Jalankan benchmark lagi untuk validasi peningkatan")
-        print()
-
-        # ── Simpan ke file ──
-        retrain_path = os.path.join(ROOT, "butuh_retrain.txt")
+        retrain_path = os.path.join(export_res['session_dir'] if export_res else ROOT, "butuh_retrain.txt")
         try:
             with open(retrain_path, "w", encoding="utf-8") as f:
                 f.write("DAFTAR FILE BERMASALAH (BUTUH LATIH ULANG)\n")
                 f.write("=" * 70 + "\n")
                 f.write(f"Tanggal : {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
                 f.write(f"Total   : {len(retrain_list)} file\n\n")
-                for kls in ["AMBULANCE", "DAMKAR", "POLISI"]:
-                    grup = [(fp, md, al) for (ka, fp, md, al) in retrain_list_sorted if ka == kls]
+                for kls in KELAS:
+                    grup = [(fp, md, al) for (ka, fp, md, al) in retrain_list if ka == kls]
                     if not grup:
                         continue
                     f.write(f"\n[{kls}] — {len(grup)} file:\n")
@@ -510,14 +677,34 @@ def menu_ujian_100():
                         f.write(f"  File    : {os.path.basename(fpath)}\n")
                         f.write(f"  Masalah : {mode} ({alasan})\n")
                         f.write(f"  Path    : {fpath}\n\n")
-            print(f"  File lengkap disimpan: {retrain_path}")
-        except Exception as e:
-            print(f"  [!] Gagal simpan: {e}")
-    else:
-        print("  Tidak ada file bermasalah! Semua kelas terdeteksi dengan benar.")
+            print(f"\n  [*] Daftar {len(retrain_list)} file bermasalah tersimpan di: {os.path.basename(retrain_path)}")
+        except Exception:
+            pass
 
     print("=" * W)
-    input("\n[Benchmark selesai! Tekan ENTER untuk kembali ke menu utama...]")
+    if export_res:
+        print("  AKSI CEPAT:")
+        print(f"   [1] Buka File Excel Dashboard Sekarang (Microsoft Excel)")
+        print(f"   [2] Buka Folder '{target_folder}' (Windows Explorer)")
+        print("   [ENTER] Selesai & Kembali ke Menu Utama")
+        try:
+            aksi = input("  Pilih aksi [1/2/ENTER]: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            aksi = ""
+        if aksi == "1":
+            try:
+                os.startfile(export_res['excel_path'])
+            except Exception as e:
+                print(f"  [!] Tidak dapat membuka Excel otomatis: {e}")
+        elif aksi == "2":
+            try:
+                os.startfile(export_res['session_dir'])
+            except Exception as e:
+                print(f"  [!] Tidak dapat membuka folder: {e}")
+    try:
+        input("\n[Tekan ENTER untuk kembali ke menu utama...]")  
+    except (EOFError, KeyboardInterrupt):
+        pass
 
 def uji_suara_normal():
     """Menu [6]: Putar suara Normal/Bising secara random."""

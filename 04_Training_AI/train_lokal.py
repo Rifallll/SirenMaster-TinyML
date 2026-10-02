@@ -228,8 +228,8 @@ def load_and_process_split_parallel(file_list, labels, is_training):
 def compute_dataset_fingerprint(file_paths):
     sorted_paths = sorted(file_paths)
     fingerprint_str = "".join([f"{fp}:{os.path.getsize(fp)}" for fp in sorted_paths])
-    # Add version salt to invalidate old cache and force regeneration with new oversampling rules
-    fingerprint_str += "v7_rhythm_clean"
+    # Invalidate cache for new stratified sampling with traffic, chat, music, and industry
+    fingerprint_str += "v13_clean_aug_fix_only_no_v2_collision"
     return hashlib.md5(fingerprint_str.encode('utf-8')).hexdigest()
 
 def main():
@@ -258,39 +258,63 @@ def main():
             # [CRITICAL FIX] Sub-sampling kelas Sirine (AMBULANCE, FIRETRUCK, POLICE) agar seimbang (1200 file per kelas)
             if cat in ["AMBULANCE", "FIRETRUCK", "POLICE"] and len(cat_files) > 1200:
                 print(f"  [!] Menyeimbangkan {cat} ({len(cat_files)} file) ke 1200 file terbaik...", flush=True)
+                # Prioritas 1: file rekaman asli/synth (kualitas terjamin)
                 synth_files = [f for f in cat_files if os.path.basename(f).startswith("SYNTH_") or "guru" in f.lower() or "live" in f.lower()]
-                regular_files = [f for f in cat_files if f not in synth_files]
+                # Prioritas 2: augmentasi variasi (aug_fix_* dan aug_v2_* - pitch+noise konservatif)
+                aug_varied = [f for f in cat_files if "aug_fix_" in os.path.basename(f) or "aug_v2_" in os.path.basename(f)]
+                # Prioritas 3: download dari internet (dl_*)
+                dl_files_cat = [f for f in cat_files if os.path.basename(f).startswith("dl_")]
+                priority_set = set(synth_files + aug_varied + dl_files_cat)
+                regular_files = [f for f in cat_files if f not in priority_set]
                 np.random.seed(42)
                 np.random.shuffle(regular_files)
-                needed = max(0, 1200 - len(synth_files))
-                cat_files = synth_files + regular_files[:needed]
-                print(f"      -> {len(synth_files)} file prioritas + {needed} file reguler.", flush=True)
+                priority_total = synth_files + aug_varied + dl_files_cat
+                needed = max(0, 1200 - len(priority_total))
+                cat_files = priority_total + regular_files[:needed]
+                print(f"      -> {len(synth_files)} SYNTH/guru + {len(aug_varied)} aug_fix + {len(dl_files_cat)} dl + {needed} reguler = {len(cat_files)} total.", flush=True)
 
-            # [CRITICAL FIX] Sub-sampling kelas NORMAL agar tidak mendominasi AI
+            # [CRITICAL FIX] Sub-sampling kelas NORMAL: STRATIFIED BALANCED SAMPLING agar seluruh jenis suara terwakili seimbang!
             if cat == "NORMAL" and len(cat_files) > 1500:
-                print(f"  [!] Kelas NORMAL terlalu dominan ({len(cat_files)} file). Memprioritaskan Suara Pengecoh (Hard Negatives)...", flush=True)
+                print(f"  [!] Menyeimbangkan kelas NORMAL ({len(cat_files)} file) dengan Stratified Balanced Sampling...", flush=True)
                 
-                important_keywords = ["hard", "neg", "telolet", "toa", "masjid", "adzan", "azan", "mosque", "prayer", "vocal", "mimic", "speech", "laugh", "cry", "music", "edm", "whistle", "baby", "siul", "bayi", "horn", "guru", "live", "ultimate"]
-                important_files = []
-                regular_files = []
+                # Kategorisasi lengkap seluruh suara bising jalanan & lingkungan
+                ind_files = [f for f in cat_files if any(k in os.path.basename(f).lower() for k in ['gergaji', 'ngelas', 'mesin', 'chainsaw', 'welding', 'bor'])]
+                traffic_files = [f for f in cat_files if any(k in os.path.basename(f).lower() for k in ['traffic', 'motor', 'knalpot', 'cabin', 'klakson', 'road'])]
+                talk_files = [f for f in cat_files if any(k in os.path.basename(f).lower() for k in ['orang', 'speech', 'crowd', 'vocal', 'laugh', 'cry', 'warkop', 'pasar', 'obrolan'])]
+                music_files = [f for f in cat_files if any(k in os.path.basename(f).lower() for k in ['music', 'edm', 'rock', 'dangdut', 'pengamen'])]
+                hard_files = [f for f in cat_files if any(k in os.path.basename(f).lower() for k in ['telolet', 'toa', 'masjid', 'adzan', 'whistle', 'siul', 'bayi', 'baby', 'horn'])]
+                guru_files = [f for f in cat_files if any(k in os.path.basename(f).lower() for k in ['guru', 'live'])]
                 
-                for f in cat_files:
-                    if any(kw in f.lower() for kw in important_keywords):
-                        important_files.append(f)
-                    else:
-                        regular_files.append(f)
-                        
+                selected_set = set(ind_files + traffic_files + talk_files + music_files + hard_files + guru_files)
+                other_files = [f for f in cat_files if f not in selected_set]
+                
                 np.random.seed(42)
-                np.random.shuffle(regular_files)
+                np.random.shuffle(traffic_files)
+                np.random.shuffle(talk_files)
+                np.random.shuffle(music_files)
+                np.random.shuffle(other_files)
                 
-                if len(important_files) >= 1500:
-                    cat_files = important_files[:1500]
-                    needed = 0
-                else:
-                    needed = 1500 - len(important_files)
-                    cat_files = important_files + regular_files[:needed]
+                # Kuota per kategori:
+                # 1. Industri (Gergaji, Ngelas, Mesin, Bor): 100% (162 file)
+                # 2. Traffic Jalan Raya / Motor / Kabin Mobil: 350 file
+                # 3. Obrolan Orang / Percakapan / Keramaian: 350 file
+                # 4. Musik / Lagu / Rock / EDM: 250 file
+                # 5. Akustik Ekstrem (Telolet / Toa / Bayi): 100% (162 file)
+                # 6. File Guru / Live: 100%
+                # 7. Suara lingkungan lain: 150 file
+                cat_files = (
+                    ind_files +
+                    traffic_files[:350] +
+                    talk_files[:350] +
+                    music_files[:250] +
+                    hard_files +
+                    guru_files +
+                    other_files[:150]
+                )
                 
-                print(f"      -> Berhasil mengamankan {len(important_files)} suara ekstrem (bayi/siulan/telolet) & {needed} suara bising biasa.", flush=True)
+                print(f"      -> 🪚 Industri: {len(ind_files)} | 🏍️ Traffic/Motor: {min(len(traffic_files), 350)} | 🗣️ Obrolan: {min(len(talk_files), 350)}", flush=True)
+                print(f"      -> 🎵 Musik: {min(len(music_files), 250)} | 📢 Akustik/Toa: {len(hard_files)} | 🌿 Lingkungan: {min(len(other_files), 150)}", flush=True)
+                print(f"      -> Total file NORMAL terpilih: {len(cat_files)} file (Seimbang & Kebal Seluruh Gangguan Jalanan!)", flush=True)
                         
         print(f"  Category '{cat}': found {len(cat_files)} files.", flush=True)
         file_paths.extend(cat_files)
@@ -526,6 +550,14 @@ def main():
         f_tflite.write(tflite_quant_model)
     print("  Full INT8 model saved to siren_model_quant.tflite", flush=True)
     print(f"  Quantized model size: {len(tflite_quant_model)/1024:.2f} KB", flush=True)
+    
+    try:
+        import shutil
+        shutil.copy('siren_model_quant.tflite', r'C:\Users\ASUS\Videos\DATASET\siren_model_quant.tflite')
+        shutil.copy(SCALER_PATH, r'C:\Users\ASUS\Videos\DATASET\siren_scaler.npz')
+        print("  [SUCCESS] Copied quantized model & scaler to DATASET root directory.", flush=True)
+    except Exception as e:
+        pass
     
     # 8. Compute windowing and filterbanks
     hamming = np.hamming(N_FFT).astype(np.float32)

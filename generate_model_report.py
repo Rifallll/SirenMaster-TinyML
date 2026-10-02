@@ -1,91 +1,74 @@
 import os
 import sys
 import datetime
-import json
 
 def create_report(
-    date_str=None,
-    branch_name=None,
-    model_version="v1.0",
-    changes_summary=None,
-    accuracy_table=None,
-    flash_stats=None,
-    ram_stats=None,
-    compile_status="PASSED",
     output_md_path="LAPORAN_MODEL_HARIAN.md"
 ):
-    if not date_str:
-        date_str = datetime.date.today().strftime("%Y-%m-%d")
-    if not branch_name:
-        branch_name = f"model/{date_str}-{model_version}"
-    if not changes_summary:
-        changes_summary = [
-            "Sinkronisasi pipeline DSP (3-tap LPF, Hamming window, Mel-40, Log-Mel) ke format INT8.",
-            "Validasi noise rejection terhadap file audio kebisingan ekstrem (knalpot, mesin industri, keramaian).",
-            "Optimalisasi tensor arena di PSRAM & verifikasi memory footprint pada ESP32-S2."
-        ]
-    if not accuracy_table:
-        accuracy_table = {
-            "AMBULANCE": {"acc": "98.5%", "prec": "0.98", "rec": "0.99", "f1": "0.98"},
-            "FIRETRUCK": {"acc": "97.8%", "prec": "0.97", "rec": "0.98", "f1": "0.97"},
-            "POLICE":    {"acc": "98.1%", "prec": "0.98", "rec": "0.98", "f1": "0.98"},
-            "NORMAL":    {"acc": "99.4%", "prec": "0.99", "rec": "1.00", "f1": "0.99"},
-        }
-    if not flash_stats:
-        flash_stats = "514 KB / 3.14 MB (16%)"
-    if not ram_stats:
-        ram_stats = "54 KB / 327 KB (16%) + 2MB PSRAM Aktif"
+    today_str = datetime.date.today().strftime("%Y-%m-%d")
+    branch_name = f"model/{today_str}-v1"
 
-    report_content = f"""# 📋 Laporan Model AI Harian - SirenMaster TinyML
+    report_content = f"""# 📋 Laporan Evaluasi & Bedah Model AI SirenMaster TinyML
 
-**Tanggal**: {date_str}  
-**Versi Model**: {model_version}  
+**Tanggal**: {today_str}  
 **Git Branch**: `{branch_name}`  
 **Target Hardware**: WeMos LOLIN S2 Mini (ESP32-S2FN4R2, 4MB Flash, 2MB PSRAM)  
-**Status Verifikasi Arduino IDE**: {'✅ PASSED (Siap Upload)' if compile_status == 'PASSED' else '❌ GAGAL'}
+**Status Verifikasi Arduino IDE**: ✅ PASSED (0 Error, Flash: 16%, SRAM: 16%)  
+**Dokumen Word**: [`LAPORAN_MODEL_HARIAN.docx`](file:///c:/Users/ASUS/Videos/DATASET/LAPORAN_MODEL_HARIAN.docx)  
+**Data CSV Evaluasi**: [`evaluation_report.csv`](file:///c:/Users/ASUS/Videos/DATASET/evaluation_report.csv)  
 
 ---
 
-## 1. 🔄 Rangkuman Perubahan dari Model Sebelumnya (Changelog)
-"""
-    for ch in changes_summary:
-        report_content += f"- {ch}\n"
+## 1. 📊 Hasil Evaluasi Dataset Validasi Riil (2.764 Sampel Audio)
+Sumber data: [`evaluation_report.csv`](file:///c:/Users/ASUS/Videos/DATASET/evaluation_report.csv)
 
-    report_content += f"""
----
-
-## 2. 📊 Hasil Evaluasi & Akurasi Benchmark
-| Kategori | Akurasi | Precision | Recall | F1-Score |
+| Kategori Suara | Precision | Recall | F1-Score | Jumlah Sampel (Support) |
 | :--- | :---: | :---: | :---: | :---: |
-"""
-    for cat, m in accuracy_table.items():
-        report_content += f"| **{cat}** | {m['acc']} | {m['prec']} | {m['rec']} | {m['f1']} |\n"
-
-    report_content += f"""
----
-
-## 3. 💾 Penggunaan Memori & Verifikasi Firmware
-- **Status Kompilasi**: `{compile_status}`
-- **Program Storage (Flash)**: `{flash_stats}`
-- **Dynamic Memory (SRAM)**: `{ram_stats}`
-- **Tensor Arena Mode**: Alokasi dinamis via `ps_malloc()` pada PSRAM (Anti Memory Overflow)
+| **AMBULANCE** | 64.5% | 82.8% | **72.5%** | 145 file |
+| **FIRETRUCK (Damkar)** | 93.9% | 66.7% | **78.0%** | 1.328 file |
+| **POLICE (Polisi)** | 68.7% | 91.6% | **78.5%** | 939 file |
+| **NORMAL (Kebisingan)** | 84.1% | 91.5% | **87.6%** | 352 file |
+| **RATA-RATA TOTAL (Accuracy)** | **79.2%** | **79.2%** | **79.2%** | **2.764 file** |
 
 ---
 
-## 4. 🚀 Panduan Upload ke ESP32 (Kamis & Jumat)
-1. Sambungkan kabel USB data ke board **LOLIN S2 Mini**.
-2. Pastikan port COM terdeteksi di Arduino IDE.
-3. Setting board otomatis terbaca dari [`sketch.yaml`](file:///c:/Users/ASUS/Videos/DATASET/sirenmaster_main/sketch.yaml):
-   - **Board**: `LOLIN S2 Mini`
-   - **Partition Scheme**: `Huge APP (3MB No OTA/1MB SPIFFS)`
-   - **USB CDC On Boot**: `Enabled`
-4. Tekan tombol **Upload (Ctrl + U)** di Arduino IDE.
+## 2. 🧪 Hasil Pengujian Live Hardware 100 Sirine
+Sumber data: [`hasil_benchmark_100.txt`](file:///c:/Users/ASUS/Videos/DATASET/hasil_benchmark_100.txt)
+
+* **Akurasi Total Live**: **57/100 (57.0%)**
+* **Berhasil Terdeteksi Benar**: 57 audio
+* **Diam (Tidak Memicu Siren)**: 32 audio
+* **Salah Kamar (Tertukar Kelas)**: 11 audio
+
+### Rincian Performa Live Per Kelas:
+- **AMBULANCE**: 31/33 (**93.9%**) — *Sangat Responsif*
+- **DAMKAR (FIRETRUCK)**: 4/33 (**12.1%**) — *Penyumbang error terbesar (banyak salah kamar/diam)*
+- **POLISI (POLICE)**: 22/34 (**64.7%**) — *Cukup Baik*
+
+---
+
+## 3. 🔍 Analisis Penyebab & Solusi
+
+### A. Mengapa Ada 32 Suara "DIAM" (Tidak Memicu Siren)?
+- **Penyebab**: Syarat pemicu sirene pada C++ ESP32 diset ketat (`bestSirenScore >= 0.58f && cs[bestSiren] >= 0.60f && bestSirenScore > cs[2]`). Jika suara sirene diputar dengan volume rendah atau dari jarak jauh, skor sirine hanya mencapai 35%-50% sehingga firmware menahannya di kelas Normal agar tidak terjadi false alarm di jalan raya.
+
+### B. Mengapa Terjadi 11 Suara "SALAH KAMAR" (Terutama Damkar 12.1%)?
+- **Penyebab**: Nada *Yelp* Damkar memiliki frekuensi yang beririsan dengan Polisi dan nada *Hi-Lo* beririsan dengan Ambulans. Karena data latih Polisi/Ambulans lebih banyak, model AI cenderung condong memilih Polisi atau Ambulans ketika ragu.
+- **Solusi**: Menjalankan [`fix_firetruck_augment.py`](file:///c:/Users/ASUS/Videos/DATASET/fix_firetruck_augment.py) untuk memperkaya dataset Damkar dengan variasi pitch shift, speed stretch, dan noise mixing.
+
+---
+
+## 4. 💾 Hasil Verifikasi Memori Arduino IDE
+- **Status Kompilasi**: `PASSED`
+- **Program Storage (Flash)**: `514.471 bytes (16%)` dari maks `3.145.728 bytes`
+- **Dynamic Memory (SRAM)**: `54.352 bytes (16%)` dari maks `327.680 bytes`
+- **External PSRAM**: Aktif (`ps_malloc` untuk Tensor Arena)
 """
 
     with open(output_md_path, "w", encoding="utf-8") as f:
         f.write(report_content)
 
-    print(f"[+] Laporan model harian berhasil dibuat: {output_md_path}")
+    print(f"[+] File markdown laporan riil berhasil diperbarui: {output_md_path}")
     return report_content
 
 if __name__ == "__main__":
